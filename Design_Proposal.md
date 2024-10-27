@@ -14,7 +14,6 @@ Projekt polega na stworzeniu programu służącemu analizie meczów piłki nożn
 - Daniel Machniak
 - Natalia Pieczko
 
-  
 ## Harmonogram projektu
   
 
@@ -77,6 +76,7 @@ Projekt polega na stworzeniu programu służącemu analizie meczów piłki nożn
 **Tydzień XI** - 06.01-12.01
 
 - Opracowanie końcowej dokumentacji projektu
+- Stworzenie instrukcji użytkowania
 
 ## Bibliografia
 
