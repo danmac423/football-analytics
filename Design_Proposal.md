@@ -8,6 +8,12 @@ Projekt polega na stworzeniu programu służącemu analizie meczów piłki nożn
 - Wyświetlanie statystyki posiadania piłki przez drużyny,
 - Wyświetlanie radaru boiska z zaznaczonymi pozycjami piłkarzy.
 
+## Autorzy projektu
+
+- Dominika Boguszewska
+- Daniel Machniak
+- Natalia Pieczko
+
   
 ## Harmonogram projektu
   
