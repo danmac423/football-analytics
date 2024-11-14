@@ -1,27 +1,28 @@
+import shutil
 from pathlib import Path
 
+import kagglehub
 import typer
-from football_analytics.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
 from loguru import logger
 from tqdm import tqdm
+
+from football_analytics.config import KAGGLE_DATASETS
 
 app = typer.Typer()
 
 
 @app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    input_path: Path = RAW_DATA_DIR / "dataset.csv",
-    output_path: Path = PROCESSED_DATA_DIR / "dataset.csv",
-    # ----------------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Processing dataset...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Processing dataset complete.")
-    # -----------------------------------------
+def main():
+    for dataset in tqdm(KAGGLE_DATASETS):
+        kaggle_id = dataset["id"]
+        save_dir = dataset["path"]
+
+        logger.info(f"Downloading dataset with id {kaggle_id} from kaggle...")
+        path = kagglehub.dataset_download(handle=kaggle_id)
+        for item in Path(path).iterdir():
+            logger.info(item)
+            shutil.move(str(item), save_dir)
+        logger.info(f"Dataset saved in {save_dir}")
 
 
 if __name__ == "__main__":

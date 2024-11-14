@@ -21,6 +21,12 @@ MODELS_DIR = PROJ_ROOT / "models"
 REPORTS_DIR = PROJ_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
+# Kaggle sources
+KAGGLE_DATASETS = [
+    {"id": "danielmachniak/football-players-detection", "path": RAW_DATA_DIR},
+    {"id": "danielmachniak/football-pitch-keypoints-detection", "path": RAW_DATA_DIR},
+]
+
 # If tqdm is installed, configure loguru with tqdm.write
 # https://github.com/Delgan/loguru/issues/135
 try:
