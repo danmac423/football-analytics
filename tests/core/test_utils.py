@@ -1,10 +1,9 @@
-import supervision.detection
 from core.utils import video_frames_generator, serialize_object
 
 import pytest
 import cv2
 import numpy as np
-from supervision.detection.core import Detections
+
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Union, Any, List
 
