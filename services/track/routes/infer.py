@@ -11,7 +11,7 @@ import cv2
 infer_router = APIRouter()
 
 
-model = YOLO("models/football-player-detector-s.pt").to("mps")
+model = YOLO("models/football-player-detector-n.pt").to("mps")
 
 
 @infer_router.post("/infer")
