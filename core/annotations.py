@@ -1,0 +1,65 @@
+from utils import video_frames_generator
+from PIL import Image, ImageDraw
+import cv2
+import numpy as np
+from ultralytics import YOLO
+import supervision as sv
+
+
+PLAYERS_DETECTION_MODEL = YOLO("models/football-player-detector-s.pt").to("mps")
+
+CUSTOM_PALLETE = sv.ColorPalette(
+    {
+        0: sv.Color(255, 0, 0),  # ball
+        1: sv.Color(0, 0, 255),  # goalkeeper
+        2: sv.Color(0, 255, 0),  # player
+        3: sv.Color(255, 255, 0),  # referee
+    }
+)
+
+ELLIPSE_ANNOTATOR = sv.EllipseAnnotator(color=CUSTOM_PALLETE)
+
+
+def run_player_detection(source_video_path, score_threshold=0.6):
+    """
+    Performs player detection on video frames and annotates the detections.
+
+    Processes a video frame by frame, runs object detection using a pre-trained YOLO model,
+    and annotates the detected objects with ellipses. Uses a custom color palette to
+    distinguish between different object classes. Yields annotated frames for further visualization
+    or processing.
+
+    Args:
+        source_video_path (str): Path to the input video file to be processed.
+        score_threshold (float, optional): The confidence threshold for detections.
+            Detections with confidence lower than this value will be ignored.
+
+    Yields:
+        np.ndarray: Annotated video frame in BGR format (compatible with OpenCV), where
+            detected objects are highlighted with ellipses.
+
+    Notes:
+        - A pre-trained YOLO model is used for object detection.
+        - Detected objects are annotated with a `supervision.EllipseAnnotator` using a
+          custom color palette.
+        - The custom color palette maps classes (e.g., ball, player, referee) to specific colors.
+        - The function does not write results to disk; it yields annotated frames for further use.
+
+    Example:
+        >>> source_video_path = "path/to/video.mp4"
+        >>> for frame in run_player_detection(source_video_path):
+        >>>     cv2.imshow("Annotated Frame", frame)
+        >>>     if cv2.waitKey(1) & 0xFF == ord("q"):
+        >>>         break
+        >>> cv2.destroyAllWindows()
+    """
+    for frame in video_frames_generator(source_video_path):
+        image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+        results = PLAYERS_DETECTION_MODEL(image, nms=False, conf=score_threshold, imgsz=1280)[0]
+        detections = sv.Detections.from_ultralytics(results)
+
+        image = ELLIPSE_ANNOTATOR.annotate(image, detections)
+
+        annotated_frame = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        yield annotated_frame
