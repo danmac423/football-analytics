@@ -1,4 +1,6 @@
 black
+opencv-python
+fastapi
 flake8
 isort
 loguru
@@ -7,4 +9,9 @@ pip
 python-dotenv
 tqdm
 typer
+ultralytics
+uvicorn
+supervision
+requests
+python-multipart
 -e .

@@ -1,12 +1,14 @@
-from utils import video_frames_generator
+from utils import video_frames_generator, list_to_nparray_in_dict, create_video_sink
+from services.config import TRACKER_SERVICE_URL
 from PIL import Image, ImageDraw
+from requests import post
 import cv2
 import numpy as np
 from ultralytics import YOLO
 import supervision as sv
+import argparse
 
 
-PLAYERS_DETECTION_MODEL = YOLO("models/football-player-detector-s.pt").to("mps")
 PITCH_KEYPOINTS_DETECTION_MODEL = YOLO("models/football-pitch-keypoints-detector-m.pt").to("mps")
 
 CUSTOM_PALLETE = sv.ColorPalette(
@@ -21,7 +23,7 @@ CUSTOM_PALLETE = sv.ColorPalette(
 ELLIPSE_ANNOTATOR = sv.EllipseAnnotator(color=CUSTOM_PALLETE)
 
 
-def run_player_detection(source_video_path, score_threshold=0.6):
+def run_player_detection(source_video_path: str, url=TRACKER_SERVICE_URL):
     """
     Performs player detection on video frames and annotates the detections.
 
@@ -57,8 +59,16 @@ def run_player_detection(source_video_path, score_threshold=0.6):
     for frame in video_frames_generator(source_video_path):
         image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-        results = PLAYERS_DETECTION_MODEL(image, nms=False, conf=score_threshold, imgsz=1280)[0]
-        detections = sv.Detections.from_ultralytics(results)
+        height, width, channels = frame.shape
+        response = post(
+            url,
+            files={"file": frame},
+            data={"height": height, "width": width, "channels": channels},
+        ).json()
+
+        response = list_to_nparray_in_dict(response)
+
+        detections = sv.Detections(**response)
 
         image = ELLIPSE_ANNOTATOR.annotate(image, detections)
 
@@ -66,7 +76,7 @@ def run_player_detection(source_video_path, score_threshold=0.6):
         yield annotated_frame
 
 
-def run_pitch_keypoints_detection(source_video_path):
+def run_pitch_keypoints_detection(source_video_path: str):
     """
     Detects and annotates pitch keypoints and bounding boxes in video frames.
 
@@ -105,6 +115,33 @@ def run_pitch_keypoints_detection(source_video_path):
 
         image = sv.BoxAnnotator().annotate(image, detections)
         image = sv.VertexAnnotator().annotate(image, keypoints)
+        # image = sv.EdgeAnnotator().annotate(image, keypoints)
 
         annotated_frame = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         yield annotated_frame
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "source_video_path",
+        type=str,
+        help="Path to the input video file",
+    )
+    parser.add_argument(
+        "output_video_path",
+        type=str,
+        help="Path to the output video file",
+    )
+
+    args = parser.parse_args()
+    source_video_path = args.source_video_path
+    output_video_path = args.output_video_path
+
+    out = create_video_sink(source_video_path, output_video_path)
+
+    for frame in run_player_detection(source_video_path):
+        out.write(frame)
+
+    out.release()
+    print(f"Video saved to {output_video_path}")

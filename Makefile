@@ -45,13 +45,25 @@ format:
 .PHONY: create_environment
 create_environment:
 	@rm -rf .venv
-	$(PYTHON_INTERPRETER) -m venv .venv
+	$(PYTHON_INTERPRETER)$(PYTHON_VERSION) -m venv .venv
 	@echo ">>> New python interpreter environment created. Activate it using 'source .venv/bin/activate'"
 
 
 .PHONY: freeze
 freeze:
 	$(PYTHON_INTERPRETER) -m pip freeze > requirements.txt
+
+
+## Run the service
+.PHONY: run_service
+run_service:
+	uvicorn services.track.app:app --host 0.0.0.0 --port 8000 --reload
+
+## Run players detection
+# Usage example: make run_players_detection source_video_path=video.mp4 output_video_path=output.mp4
+.PHONY: run_players_detection $(source_video_path) $(output_video_path)
+run_players_detection:
+	$(PYTHON_INTERPRETER) core/annotations.py $(source_video_path) $(output_video_path)
 
 
 #################################################################################
