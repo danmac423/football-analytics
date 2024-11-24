@@ -26,4 +26,3 @@ def video_frames_generator(video_path):
             break
         yield frame
     cap.release()
-
