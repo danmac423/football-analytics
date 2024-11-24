@@ -1,7 +1,7 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
-from services.track.app import app  # Import aplikacji FastAPI
+from services.track.app import app
 from supervision.detection.core import Detections
 import numpy as np
 
@@ -17,7 +17,7 @@ def mock_yolo_and_detections():
         ) as mock_detections_method,
     ):
 
-        mock_model.predict.return_value = ["mock_result"]  # Wynik modelu YOLO
+        mock_model.predict.return_value = ["mock_result"]
 
         mock_detections_method.return_value = Detections(
             xyxy=np.array([[10, 20, 30, 40], [50, 60, 70, 80]]),
@@ -29,7 +29,7 @@ def mock_yolo_and_detections():
 
 
 def test_infer_endpoint_with_mocked_yolo_and_detections(mock_yolo_and_detections):
-    test_image = b"\x00" * 100  # Przykładowy plik wejściowy
+    test_image = b"\x00" * 100
     response = client.post(
         "/infer",
         files={"file": ("test_image.jpg", test_image, "image/jpeg")},
@@ -37,7 +37,6 @@ def test_infer_endpoint_with_mocked_yolo_and_detections(mock_yolo_and_detections
 
     assert response.status_code == 200
 
-    # Sprawdzenie odpowiedzi JSON
     data = response.json()
     assert data["xyxy"] == [[10, 20, 30, 40], [50, 60, 70, 80]]
     assert data["confidence"] == [0.95, 0.89]

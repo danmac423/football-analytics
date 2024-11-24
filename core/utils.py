@@ -54,7 +54,7 @@ def serialize_object(
             - For basic types, the object itself.
             - For unsupported types, the string representation of the object.
     """
-    if hasattr(obj, "__dict__"):  # Obiekty niestandardowe z atrybutami
+    if hasattr(obj, "__dict__"):
         return {k: serialize_object(v) for k, v in vars(obj).items()}
     elif isinstance(obj, dict):
         return {k: serialize_object(v) for k, v in obj.items()}
