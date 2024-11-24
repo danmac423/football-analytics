@@ -1,12 +1,13 @@
-from utils import video_frames_generator
+from utils import video_frames_generator, response_to_nparray
+from services.config import TRACKER_SERVICE_URL
 from PIL import Image, ImageDraw
+from requests import post
 import cv2
 import numpy as np
 from ultralytics import YOLO
 import supervision as sv
 
 
-PLAYERS_DETECTION_MODEL = YOLO("models/football-player-detector-s.pt").to("mps")
 PITCH_KEYPOINTS_DETECTION_MODEL = YOLO("models/football-pitch-keypoints-detector-m.pt").to("mps")
 
 CUSTOM_PALLETE = sv.ColorPalette(
@@ -21,7 +22,7 @@ CUSTOM_PALLETE = sv.ColorPalette(
 ELLIPSE_ANNOTATOR = sv.EllipseAnnotator(color=CUSTOM_PALLETE)
 
 
-def run_player_detection(source_video_path, score_threshold=0.6):
+def run_player_detection(source_video_path, url=TRACKER_SERVICE_URL):
     """
     Performs player detection on video frames and annotates the detections.
 
@@ -55,10 +56,20 @@ def run_player_detection(source_video_path, score_threshold=0.6):
         >>> cv2.destroyAllWindows()
     """
     for frame in video_frames_generator(source_video_path):
+        print(frame.shape)
         image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-        results = PLAYERS_DETECTION_MODEL(image, nms=False, conf=score_threshold, imgsz=1280)[0]
-        detections = sv.Detections.from_ultralytics(results)
+        height, width, channels = frame.shape
+        response = post(
+            url,
+            files={"file": frame},
+            data={"height": height, "width": width, "channels": channels},
+        ).json()
+        print(type(response))
+
+        response = response_to_nparray(response)
+
+        detections = sv.Detections(**response)
 
         image = ELLIPSE_ANNOTATOR.annotate(image, detections)
 
@@ -105,6 +116,18 @@ def run_pitch_keypoints_detection(source_video_path):
 
         image = sv.BoxAnnotator().annotate(image, detections)
         image = sv.VertexAnnotator().annotate(image, keypoints)
+        # image = sv.EdgeAnnotator().annotate(image, keypoints)
 
         annotated_frame = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         yield annotated_frame
+
+
+if __name__ == "__main__":
+    source_video_path = "test_video2.mp4"
+
+    for frame in run_player_detection(source_video_path):
+        cv2.imshow("Annotated Frame", frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    cv2.destroyAllWindows()

@@ -45,7 +45,7 @@ format:
 .PHONY: create_environment
 create_environment:
 	@rm -rf .venv
-	$(PYTHON_INTERPRETER) -m venv .venv
+	$(PYTHON_INTERPRETER)$(PYTHON_VERSION) -m venv .venv
 	@echo ">>> New python interpreter environment created. Activate it using 'source .venv/bin/activate'"
 
 

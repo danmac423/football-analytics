@@ -66,3 +66,14 @@ def serialize_object(
         return obj
     else:
         return str(obj)
+
+
+def response_to_nparray(response):
+    """
+    Converts lists from response dictionary to NumPy arrays.
+    """
+    response = response.copy()
+    for key, value in response.items():
+        if isinstance(value, list):
+            response[key] = np.array(value)
+    return response
