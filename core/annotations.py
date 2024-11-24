@@ -1,4 +1,4 @@
-from utils import video_frames_generator, response_to_nparray, create_video_sink
+from utils import video_frames_generator, list_to_nparray_in_dict, create_video_sink
 from services.config import TRACKER_SERVICE_URL
 from PIL import Image, ImageDraw
 from requests import post
@@ -23,7 +23,7 @@ CUSTOM_PALLETE = sv.ColorPalette(
 ELLIPSE_ANNOTATOR = sv.EllipseAnnotator(color=CUSTOM_PALLETE)
 
 
-def run_player_detection(source_video_path, url=TRACKER_SERVICE_URL):
+def run_player_detection(source_video_path: str, url=TRACKER_SERVICE_URL):
     """
     Performs player detection on video frames and annotates the detections.
 
@@ -66,7 +66,7 @@ def run_player_detection(source_video_path, url=TRACKER_SERVICE_URL):
             data={"height": height, "width": width, "channels": channels},
         ).json()
 
-        response = response_to_nparray(response)
+        response = list_to_nparray_in_dict(response)
 
         detections = sv.Detections(**response)
 
@@ -76,7 +76,7 @@ def run_player_detection(source_video_path, url=TRACKER_SERVICE_URL):
         yield annotated_frame
 
 
-def run_pitch_keypoints_detection(source_video_path):
+def run_pitch_keypoints_detection(source_video_path: str):
     """
     Detects and annotates pitch keypoints and bounding boxes in video frames.
 

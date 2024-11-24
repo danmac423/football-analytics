@@ -68,18 +68,18 @@ def serialize_object(
         return str(obj)
 
 
-def response_to_nparray(response):
+def list_to_nparray_in_dict(dictionary: dict) -> dict:
     """
-    Converts lists from response dictionary to NumPy arrays.
+    Converts lists from dictionary to NumPy arrays.
     """
-    response = response.copy()
-    for key, value in response.items():
+    dictionary = dictionary.copy()
+    for key, value in dictionary.items():
         if isinstance(value, list):
-            response[key] = np.array(value)
-    return response
+            dictionary[key] = np.array(value)
+    return dictionary
 
 
-def create_video_sink(source_video_path, output_video_path):
+def create_video_sink(source_video_path: str, output_video_path: str) -> cv2.VideoWriter:
     cap = cv2.VideoCapture(source_video_path)
     if not cap.isOpened():
         raise ValueError(f"Could not open the video file: {source_video_path}")
@@ -90,6 +90,6 @@ def create_video_sink(source_video_path, output_video_path):
     cap.release()
 
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+    sink = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
-    return out
+    return sink
