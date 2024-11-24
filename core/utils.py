@@ -77,3 +77,19 @@ def response_to_nparray(response):
         if isinstance(value, list):
             response[key] = np.array(value)
     return response
+
+
+def create_video_sink(source_video_path, output_video_path):
+    cap = cv2.VideoCapture(source_video_path)
+    if not cap.isOpened():
+        raise ValueError(f"Could not open the video file: {source_video_path}")
+
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap.release()
+
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    return out

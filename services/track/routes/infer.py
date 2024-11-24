@@ -33,8 +33,6 @@ async def infer(
         detections = sv.Detections.from_ultralytics(result)
 
         response = serialize_object(detections)
-        print(response)
-
         return response
 
     except Exception as e:

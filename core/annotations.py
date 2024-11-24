@@ -1,4 +1,4 @@
-from utils import video_frames_generator, response_to_nparray
+from utils import video_frames_generator, response_to_nparray, create_video_sink
 from services.config import TRACKER_SERVICE_URL
 from PIL import Image, ImageDraw
 from requests import post
@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import supervision as sv
+import argparse
 
 
 PITCH_KEYPOINTS_DETECTION_MODEL = YOLO("models/football-pitch-keypoints-detector-m.pt").to("mps")
@@ -56,7 +57,6 @@ def run_player_detection(source_video_path, url=TRACKER_SERVICE_URL):
         >>> cv2.destroyAllWindows()
     """
     for frame in video_frames_generator(source_video_path):
-        print(frame.shape)
         image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
         height, width, channels = frame.shape
@@ -65,7 +65,6 @@ def run_player_detection(source_video_path, url=TRACKER_SERVICE_URL):
             files={"file": frame},
             data={"height": height, "width": width, "channels": channels},
         ).json()
-        print(type(response))
 
         response = response_to_nparray(response)
 
@@ -123,11 +122,26 @@ def run_pitch_keypoints_detection(source_video_path):
 
 
 if __name__ == "__main__":
-    source_video_path = "test_video2.mp4"
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "source_video_path",
+        type=str,
+        help="Path to the input video file",
+    )
+    parser.add_argument(
+        "output_video_path",
+        type=str,
+        help="Path to the output video file",
+    )
+
+    args = parser.parse_args()
+    source_video_path = args.source_video_path
+    output_video_path = args.output_video_path
+
+    out = create_video_sink(source_video_path, output_video_path)
 
     for frame in run_player_detection(source_video_path):
-        cv2.imshow("Annotated Frame", frame)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        out.write(frame)
 
-    cv2.destroyAllWindows()
+    out.release()
+    print(f"Video saved to {output_video_path}")
