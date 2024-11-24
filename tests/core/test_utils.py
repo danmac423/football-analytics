@@ -99,10 +99,6 @@ class SampleDetection:
 
 @pytest.fixture
 def complex_object():
-    """
-    Fikstura z bardziej złożonym obiektem dataclass.
-    """
-    # Tworzenie obiektu DetectionResult
     detection = SampleDetection(
         xyxy=np.array([[10, 20, 30, 40], [50, 60, 70, 80]]),
         mask=np.random.randint(0, 2, (2, 100, 100)),  # Maski binarne

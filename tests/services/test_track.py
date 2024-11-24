@@ -10,9 +10,6 @@ client = TestClient(app)
 
 @pytest.fixture
 def mock_yolo_and_detections():
-    """
-    Mockowanie modelu YOLO i funkcji sv.Detections.from_ultralytics.
-    """
     with (
         patch("services.track.routes.infer.model") as mock_model,
         patch(
@@ -32,9 +29,6 @@ def mock_yolo_and_detections():
 
 
 def test_infer_endpoint_with_mocked_yolo_and_detections(mock_yolo_and_detections):
-    """
-    Test endpointu /infer z zamockowanym modelem YOLO i Detections.from_ultralytics.
-    """
     test_image = b"\x00" * 100  # Przykładowy plik wejściowy
     response = client.post(
         "/infer",
