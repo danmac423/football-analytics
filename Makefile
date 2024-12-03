@@ -84,6 +84,14 @@ train:
 	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/train.py $(training_config_path)
 
 
+## Make validate
+# Usage example: make validate models_to_validate="../runs/detect/train2/weights/best.pt ../runs/detect/train3/weights/best.pt"
+.PHONY: validate
+models_to_validate ?=
+validate:
+	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/validate.py $(models_to_validate)
+
+
 
 #################################################################################
 # Self Documenting Commands                                                     #
