@@ -1,0 +1,34 @@
+[
+    {
+        "model": "yolo11n.pt",
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs_min": 1,
+        "epochs_max": 2,
+        "epochs_step": 1,
+        "patience": 50,
+        "batch_min": 0.8,
+        "batch_max": 10,
+        "imgsz_min": 640,
+        "imgsz_max": 1280,
+        "imgsz_step": 32,
+        "plots": true,
+        "numer_of_trials": 2
+    },
+    {
+        "model": "yolo11n-pose.pt",
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-pitch-keypoints-detection/data.yaml",
+        "epochs_min": 1,
+        "epochs_max": 2,
+        "epochs_step": 1,
+        "patience": 50,
+        "batch_min": 0.8,
+        "batch_max": 10,
+        "imgsz_min": 640,
+        "imgsz_max": 1280,
+        "imgsz_step": 32,
+        "plots": true,
+        "numer_of_trials": 2
+    }
+]

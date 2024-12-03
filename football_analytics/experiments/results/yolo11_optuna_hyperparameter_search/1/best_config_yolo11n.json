@@ -1,0 +1,10 @@
+{
+    "model": "yolo11n.pt",
+    "task": "detect",
+    "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-players-detection/data.yaml",
+    "plots": true,
+    "patience": 50,
+    "epochs": 2,
+    "batch": 4,
+    "imgsz": 1024
+}
