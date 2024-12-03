@@ -77,6 +77,14 @@ data: requirements
 	$(PYTHON_INTERPRETER) football_analytics/dataset.py
 
 
+## Make train
+# Usage example: make train training_config_path=../configurations/train.json
+.PHONY: train $(training_config_path)
+train:
+	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/train.py $(training_config_path)
+
+
+
 #################################################################################
 # Self Documenting Commands                                                     #
 #################################################################################
