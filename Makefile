@@ -92,6 +92,18 @@ validate:
 	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/validate.py $(models_to_validate)
 
 
+#################################################################################
+# EXPERIMENTS                                                                   #
+#################################################################################
+
+
+## Make optuna hyperparameter search experiment
+# Usage example: make optuna_hyperparameter_search path_to_hyperparameters_search_config=../configurations/hyperparameter_search.json
+.PHONY: optuna_hyperparameter_search $(path_to_hyperparameters_search_config)
+optuna_hyperparameter_search:
+	cd models && $(PYTHON_INTERPRETER) ../football_analytics/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
+
+
 
 #################################################################################
 # Self Documenting Commands                                                     #
