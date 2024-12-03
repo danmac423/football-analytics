@@ -27,7 +27,6 @@ def main(training_config_path: Path):
 
     for config in read_from_json(training_config_path):
         train(config)
-        # print(config)
 
 
 if __name__ == "__main__":
