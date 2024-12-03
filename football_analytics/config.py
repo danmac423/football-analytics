@@ -23,8 +23,8 @@ FIGURES_DIR = REPORTS_DIR / "figures"
 
 # Kaggle sources
 KAGGLE_DATASETS = [
-    {"id": "danielmachniak/football-players-detection", "path": RAW_DATA_DIR},
-    {"id": "danielmachniak/football-pitch-keypoints-detection", "path": RAW_DATA_DIR},
+    {"id": "danielmachniak/football-players-detection", "path": RAW_DATA_DIR / "football-players-detection"},
+    {"id": "danielmachniak/football-pitch-keypoints-detection", "path": RAW_DATA_DIR / "football-pitch-keypoints-detection"},
 ]
 
 # If tqdm is installed, configure loguru with tqdm.write
