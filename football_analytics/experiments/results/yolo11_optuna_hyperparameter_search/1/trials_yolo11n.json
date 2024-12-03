@@ -1,0 +1,24 @@
+[
+    {
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 2,
+        "patience": 50,
+        "batch": 4,
+        "imgsz": 1024,
+        "plots": true,
+        "project": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/football_analytics/experiments/runs/6/yolo11n",
+        "model": "yolo11n.pt"
+    },
+    {
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 2,
+        "patience": 50,
+        "batch": 9,
+        "imgsz": 960,
+        "plots": true,
+        "project": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/football_analytics/experiments/runs/6/yolo11n",
+        "model": "yolo11n.pt"
+    }
+]

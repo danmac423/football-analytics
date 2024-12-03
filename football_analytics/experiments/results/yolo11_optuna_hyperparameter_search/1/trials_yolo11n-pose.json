@@ -1,0 +1,24 @@
+[
+    {
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-pitch-keypoints-detection/data.yaml",
+        "epochs": 1,
+        "patience": 50,
+        "batch": 6,
+        "imgsz": 736,
+        "plots": true,
+        "project": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/football_analytics/experiments/runs/6/yolo11n-pose",
+        "model": "yolo11n-pose.pt"
+    },
+    {
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-pitch-keypoints-detection/data.yaml",
+        "epochs": 1,
+        "patience": 50,
+        "batch": 4,
+        "imgsz": 1184,
+        "plots": true,
+        "project": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/football_analytics/experiments/runs/6/yolo11n-pose",
+        "model": "yolo11n-pose.pt"
+    }
+]
