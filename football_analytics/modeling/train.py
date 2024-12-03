@@ -1,30 +1,35 @@
+import argparse
 from pathlib import Path
 
 import typer
 from loguru import logger
-from tqdm import tqdm
+from ultralytics import YOLO
 
-from football_analytics.config import MODELS_DIR, PROCESSED_DATA_DIR
+from football_analytics.config_io import read_from_json
+
 
 app = typer.Typer()
 
 
+def train(config: dict):
+    model_path = config.pop("model")
+
+    logger.info(f"Loading model from {model_path}")
+    model = YOLO(model_path)
+
+    logger.info(f"Training model with configuration {config}")
+    model.train(**config)
+
+
 @app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    features_path: Path = PROCESSED_DATA_DIR / "features.csv",
-    labels_path: Path = PROCESSED_DATA_DIR / "labels.csv",
-    model_path: Path = MODELS_DIR / "model.pkl",
-    # -----------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Training some model...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Modeling training complete.")
-    # -----------------------------------------
+def main(training_config_path: Path):
+    logger.info(f"Reading configuration from {training_config_path}")
+
+    for config in read_from_json(training_config_path):
+        train(config)
+        # print(config)
 
 
 if __name__ == "__main__":
     app()
+
