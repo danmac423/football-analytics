@@ -1,0 +1,57 @@
+[
+    {
+        "task": "detect",
+        "data": "/home/michal/Desktop/cluster/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 120,
+        "patience": 50,
+        "batch": 7,
+        "imgsz": 960,
+        "plots": true,
+        "project": "/home/michal/Desktop/cluster/football-analytics/football_analytics/experiments/runs/7/yolo11n",
+        "model": "yolo11n.pt"
+    },
+    {
+        "task": "detect",
+        "data": "/home/michal/Desktop/cluster/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 190,
+        "patience": 50,
+        "batch": 5,
+        "imgsz": 1152,
+        "plots": true,
+        "project": "/home/michal/Desktop/cluster/football-analytics/football_analytics/experiments/runs/7/yolo11n",
+        "model": "yolo11n.pt"
+    },
+    {
+        "task": "detect",
+        "data": "/home/michal/Desktop/cluster/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 150,
+        "patience": 50,
+        "batch": 4,
+        "imgsz": 1216,
+        "plots": true,
+        "project": "/home/michal/Desktop/cluster/football-analytics/football_analytics/experiments/runs/7/yolo11n",
+        "model": "yolo11n.pt"
+    },
+    {
+        "task": "detect",
+        "data": "/home/michal/Desktop/cluster/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 150,
+        "patience": 50,
+        "batch": 3,
+        "imgsz": 1280,
+        "plots": true,
+        "project": "/home/michal/Desktop/cluster/football-analytics/football_analytics/experiments/runs/7/yolo11n",
+        "model": "yolo11n.pt"
+    },
+    {
+        "task": "detect",
+        "data": "/home/michal/Desktop/cluster/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 140,
+        "patience": 50,
+        "batch": 5,
+        "imgsz": 672,
+        "plots": true,
+        "project": "/home/michal/Desktop/cluster/football-analytics/football_analytics/experiments/runs/7/yolo11n",
+        "model": "yolo11n.pt"
+    }
+]
