@@ -21,6 +21,8 @@ MODELS_DIR = PROJ_ROOT / "models"
 REPORTS_DIR = PROJ_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
+RUNS_DIR = PROJ_ROOT / "runs"
+
 # Kaggle sources
 KAGGLE_DATASETS = [
     {"id": "danielmachniak/football-players-detection", "path": RAW_DATA_DIR / "football-players-detection"},
