@@ -17,8 +17,6 @@ def main():
         kaggle_id = dataset["id"]
         save_dir = dataset["path"]
 
-        save_dir.mkdir(parents=True, exist_ok=True)
-
         logger.info(f"Downloading dataset with id {kaggle_id} from kaggle...")
         path = kagglehub.dataset_download(handle=kaggle_id)
 
