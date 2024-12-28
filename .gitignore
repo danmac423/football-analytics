@@ -173,3 +173,9 @@ cython_debug/
 
 # Runs directory from training and validating models
 runs/
+
+# YOLO models
+models/yolo11n-pose.pt
+models/yolo11n.pt
+models/yolo11s.pt
+models/yolo11x.pt
