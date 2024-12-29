@@ -36,7 +36,11 @@ def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, 
 
     config["model"] = search["model"]
     config["value"] = value
-    
+
+    if "additional_dataset" in search.keys():
+        config["data"] = search["data"]
+        config["additional_dataset"] = search["additional_dataset"]
+
     trials_data.append(config)
     write_to_json(output_path, trials_data)
 
@@ -62,7 +66,16 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
 
     train(config)
 
-    train_number = trial.number if trial.number >= 2 else ""
+    if "additional_dataset" in search.keys():
+        config["data"] = str(search["additional_dataset"])
+        config["model"] = str(search["model"])
+
+        train(config)
+
+        train_number = 2 * (trial.number + 1)
+    else:
+        train_number = trial.number + 1 if trial.number >= 1 else ""
+
     best_file = search["project"] / f"train{train_number}/weights/best.pt"
 
     metrics = validate(best_file)
@@ -91,6 +104,9 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
         "plots": search["plots"],
         "patience": search["patience"],
     }
+
+    if "additional_dataset" in search.keys():
+        best_config["additional_dataset"] = str(search["additional_dataset"])
 
     best_config.update(study.best_params)
     best_config["batch"] = best_config["batch"] if best_config["batch"] < 1 else int(best_config["batch"])
