@@ -1,7 +1,4 @@
 import time
-import shutil
-from typing import Any
-
 import optuna
 import json
 import typer
@@ -9,6 +6,7 @@ import typer
 from optuna import Trial
 from pathlib import Path
 from loguru import logger
+from typing import Any
 
 from football_analytics.config import PROJ_ROOT
 from football_analytics.config_io import write_to_json, read_from_json
