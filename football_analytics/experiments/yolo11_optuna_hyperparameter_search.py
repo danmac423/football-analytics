@@ -1,4 +1,6 @@
 import time
+from datetime import datetime
+
 import optuna
 import json
 import typer
@@ -18,15 +20,6 @@ RESULTS_DIRECTORY = PROJ_ROOT / f"football_analytics/experiments/results/yolo11_
 
 
 app = typer.Typer()
-
-
-def get_next_experiment_dir_number(base_dir: Path) -> int:
-    if not base_dir.exists():
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-    existing_dirs = [int(d.name) for d in base_dir.iterdir() if d.is_dir() and d.name.isdigit()]
-
-    return max(existing_dirs, default=0) + 1
 
 
 def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, Any]) -> None:
@@ -106,13 +99,15 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
 @app.command()
 def main(path_to_hyperparameters_search_config: Path):
     searches = read_from_json(path_to_hyperparameters_search_config)
-    experiment_dir_number = get_next_experiment_dir_number(RESULTS_DIRECTORY)
 
     for search in searches:
-        runs_dir = PROJ_ROOT / f"football_analytics/experiments/runs/{experiment_dir_number}/{search["model"][:-3]}"
+        current_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        logger.info(f"Current timestamp: {current_timestamp}")
+
+        runs_dir = PROJ_ROOT / f"football_analytics/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
         search["project"] = runs_dir
 
-        experiment_dir = RESULTS_DIRECTORY / f"{experiment_dir_number}"
+        experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
         search["experiment_dir"] = experiment_dir
 
         logger.info(f"Using experiment directory: {experiment_dir}")
