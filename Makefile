@@ -92,13 +92,6 @@ validate:
 	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/validate.py $(models_to_validate)
 
 
-## Make tensorboard
-# Use example: make tensorboard path_to_logs=./runs
-.PHONY: tensorboard $(path_to_logs)
-tensorboard:
-	tensorboard --logdir $(path_to_logs)
-
-
 #################################################################################
 # EXPERIMENTS                                                                   #
 #################################################################################
@@ -110,6 +103,13 @@ tensorboard:
 optuna_hyperparameter_search:
 	cd models && $(PYTHON_INTERPRETER) ../football_analytics/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
 
+
+## Make tensorboard
+# Use example: make tensorboard path_to_logs=./runs
+# Use example: make tensorboard path_to_logs=./football_analytics/experiments/runs
+.PHONY: tensorboard $(path_to_logs)
+tensorboard:
+	tensorboard --logdir $(path_to_logs)
 
 
 #################################################################################
