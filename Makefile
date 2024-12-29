@@ -92,6 +92,13 @@ validate:
 	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/validate.py $(models_to_validate)
 
 
+## Make tensorboard
+# Use example: make tensorboard path_to_logs=./runs
+.PHONY: tensorboard $(path_to_logs)
+tensorboard:
+	tensorboard --logdir $(path_to_logs)
+
+
 #################################################################################
 # EXPERIMENTS                                                                   #
 #################################################################################
