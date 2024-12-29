@@ -22,7 +22,7 @@ RESULTS_DIRECTORY = PROJ_ROOT / f"football_analytics/experiments/results/yolo11_
 app = typer.Typer()
 
 
-def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, Any]) -> None:
+def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, Any], value: float) -> None:
     output_path = search["experiment_dir"] / f"trials_{search["model"][:-3]}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -35,6 +35,8 @@ def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, 
         trials_data = []
 
     config["model"] = search["model"]
+    config["value"] = value
+    
     trials_data.append(config)
     write_to_json(output_path, trials_data)
 
@@ -66,7 +68,7 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     metrics = validate(best_file)
     map50_95 = metrics.box.map
 
-    save_trials_to_json(trial, search, config)
+    save_trials_to_json(trial, search, config, map50_95)
 
     return map50_95
 
