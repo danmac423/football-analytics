@@ -1,6 +1,5 @@
 import time
-import shutil
-from typing import Any
+from datetime import datetime
 
 import optuna
 import json
@@ -9,6 +8,7 @@ import typer
 from optuna import Trial
 from pathlib import Path
 from loguru import logger
+from typing import Any
 
 from football_analytics.config import PROJ_ROOT
 from football_analytics.config_io import write_to_json, read_from_json
@@ -22,16 +22,7 @@ RESULTS_DIRECTORY = PROJ_ROOT / f"football_analytics/experiments/results/yolo11_
 app = typer.Typer()
 
 
-def get_next_experiment_dir_number(base_dir: Path) -> int:
-    if not base_dir.exists():
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-    existing_dirs = [int(d.name) for d in base_dir.iterdir() if d.is_dir() and d.name.isdigit()]
-
-    return max(existing_dirs, default=0) + 1
-
-
-def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, Any]) -> None:
+def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, Any], value: float) -> None:
     output_path = search["experiment_dir"] / f"trials_{search["model"][:-3]}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -44,6 +35,12 @@ def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, 
         trials_data = []
 
     config["model"] = search["model"]
+    config["value"] = value
+
+    if "additional_dataset" in search.keys():
+        config["data"] = search["data"]
+        config["additional_dataset"] = search["additional_dataset"]
+
     trials_data.append(config)
     write_to_json(output_path, trials_data)
 
@@ -69,13 +66,22 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
 
     train(config)
 
-    train_number = trial.number if trial.number >= 2 else ""
+    if "additional_dataset" in search.keys():
+        config["data"] = str(search["additional_dataset"])
+        config["model"] = str(search["model"])
+
+        train(config)
+
+        train_number = 2 * (trial.number + 1)
+    else:
+        train_number = trial.number + 1 if trial.number >= 1 else ""
+
     best_file = search["project"] / f"train{train_number}/weights/best.pt"
 
     metrics = validate(best_file)
     map50_95 = metrics.box.map
 
-    save_trials_to_json(trial, search, config)
+    save_trials_to_json(trial, search, config, map50_95)
 
     return map50_95
 
@@ -99,6 +105,9 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
         "patience": search["patience"],
     }
 
+    if "additional_dataset" in search.keys():
+        best_config["additional_dataset"] = str(search["additional_dataset"])
+
     best_config.update(study.best_params)
     best_config["batch"] = best_config["batch"] if best_config["batch"] < 1 else int(best_config["batch"])
 
@@ -108,13 +117,15 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
 @app.command()
 def main(path_to_hyperparameters_search_config: Path):
     searches = read_from_json(path_to_hyperparameters_search_config)
-    experiment_dir_number = get_next_experiment_dir_number(RESULTS_DIRECTORY)
 
     for search in searches:
-        runs_dir = PROJ_ROOT / f"football_analytics/experiments/runs/{experiment_dir_number}/{search["model"][:-3]}"
+        current_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        logger.info(f"Current timestamp: {current_timestamp}")
+
+        runs_dir = PROJ_ROOT / f"football_analytics/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
         search["project"] = runs_dir
 
-        experiment_dir = RESULTS_DIRECTORY / f"{experiment_dir_number}"
+        experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
         search["experiment_dir"] = experiment_dir
 
         logger.info(f"Using experiment directory: {experiment_dir}")
