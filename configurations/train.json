@@ -7,6 +7,17 @@
         "patience": 50,
         "batch": 0.8,
         "imgsz": 1280,
+        "plots": true,
+        "additional_dataset": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-ball-detection/data.yaml"
+    },
+    {
+        "model": "yolo11n.pt",
+        "task": "detect",
+        "data": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-players-detection/data.yaml",
+        "epochs": 1,
+        "patience": 50,
+        "batch": 0.8,
+        "imgsz": 1280,
         "plots": true
     },
     {
