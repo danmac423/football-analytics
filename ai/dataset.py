@@ -6,7 +6,7 @@ import typer
 from loguru import logger
 from tqdm import tqdm
 
-from football_analytics.config import KAGGLE_DATASETS
+from ai.config import KAGGLE_DATASETS
 
 app = typer.Typer()
 

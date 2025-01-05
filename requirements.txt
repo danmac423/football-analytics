@@ -1,5 +1,6 @@
 black
 opencv-python
+httpx
 fastapi
 flake8
 isort

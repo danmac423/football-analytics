@@ -33,6 +33,7 @@ def test_infer_endpoint_with_mocked_yolo_and_detections(mock_yolo_and_detections
     response = client.post(
         "/infer",
         files={"file": ("test_image.jpg", test_image, "image/jpeg")},
+        data={"height": 10, "width": 10, "channels": 1},
     )
 
     assert response.status_code == 200

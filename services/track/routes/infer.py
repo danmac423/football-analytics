@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, Form
 from ultralytics import YOLO
-from core.utils import serialize_object
+from football_analytics.utils.utils import serialize_object
 import supervision as sv
 from PIL import Image
 
