@@ -18,6 +18,11 @@ requirements:
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
 
+## Install Python Dependencies with uv
+.PHONY: uv
+uv:
+	uv sync
+	uv pip install -e .
 
 
 ## Delete all compiled Python files
@@ -60,10 +65,10 @@ run_service:
 	uvicorn services.track.app:app --host 0.0.0.0 --port 8000 --reload
 
 ## Run players detection
-# Usage example: make run_players_detection source_video_path=video.mp4 output_video_path=output.mp4
+# Usage example: make run_players_detection source_video_path=data/input/test_video.mp4 output_video_path=data/output/output_video.mp4
 .PHONY: run_players_detection $(source_video_path) $(output_video_path)
 run_players_detection:
-	$(PYTHON_INTERPRETER) core/annotations.py $(source_video_path) $(output_video_path)
+	$(PYTHON_INTERPRETER) football_analytics/annotations/annotations.py $(source_video_path) $(output_video_path)
 
 
 #################################################################################

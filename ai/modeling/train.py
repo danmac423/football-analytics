@@ -5,8 +5,8 @@ import typer
 from loguru import logger
 from ultralytics import YOLO
 
-from football_analytics.config import RUNS_DIR
-from football_analytics.config_io import read_from_json
+from ai.config import RUNS_DIR
+from ai.config_io import read_from_json
 
 
 app = typer.Typer()

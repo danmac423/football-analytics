@@ -1,4 +1,4 @@
-from core.utils import video_frames_generator, serialize_object
+from football_analytics.utils.utils import video_frames_generator, serialize_object
 
 import pytest
 import cv2

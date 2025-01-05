@@ -10,13 +10,13 @@ from pathlib import Path
 from loguru import logger
 from typing import Any
 
-from football_analytics.config import PROJ_ROOT
-from football_analytics.config_io import write_to_json, read_from_json
-from football_analytics.modeling.train import train
-from football_analytics.modeling.validate import validate
+from ai.config import PROJ_ROOT
+from ai.config_io import write_to_json, read_from_json
+from ai.modeling.train import train
+from ai.modeling.validate import validate
 
 
-RESULTS_DIRECTORY = PROJ_ROOT / f"football_analytics/experiments/results/yolo11_optuna_hyperparameter_search"
+RESULTS_DIRECTORY = PROJ_ROOT / f"ai/experiments/results/yolo11_optuna_hyperparameter_search"
 
 
 app = typer.Typer()
@@ -122,7 +122,7 @@ def main(path_to_hyperparameters_search_config: Path):
         current_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         logger.info(f"Current timestamp: {current_timestamp}")
 
-        runs_dir = PROJ_ROOT / f"football_analytics/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
+        runs_dir = PROJ_ROOT / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
         search["project"] = runs_dir
 
         experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
