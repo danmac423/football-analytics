@@ -22,7 +22,6 @@ async def infer(
     channels: int = Form(...),
 ):
     try:
-
         byte_stream = await file.read()
         np_array = np.frombuffer(byte_stream, np.uint8)
         np_array = np_array.reshape((height, width, channels))

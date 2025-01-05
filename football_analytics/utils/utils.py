@@ -1,6 +1,7 @@
-import cv2
 import os
-from typing import Any, Union, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
+
+import cv2
 import numpy as np
 
 
