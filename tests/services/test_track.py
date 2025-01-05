@@ -16,7 +16,6 @@ def mock_yolo_and_detections():
             "services.track.routes.infer.sv.Detections.from_ultralytics"
         ) as mock_detections_method,
     ):
-
         mock_model.predict.return_value = ["mock_result"]
 
         mock_detections_method.return_value = Detections(

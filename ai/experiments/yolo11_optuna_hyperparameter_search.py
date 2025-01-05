@@ -16,13 +16,15 @@ from ai.modeling.train import train
 from ai.modeling.validate import validate
 
 
-RESULTS_DIRECTORY = PROJ_ROOT / f"ai/experiments/results/yolo11_optuna_hyperparameter_search"
+RESULTS_DIRECTORY = PROJ_ROOT / "ai/experiments/results/yolo11_optuna_hyperparameter_search"
 
 
 app = typer.Typer()
 
 
-def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, Any], value: float) -> None:
+def save_trials_to_json(
+    trial: Trial, search: dict[str, Any], config: dict[str, Any], value: float
+) -> None:
     output_path = search["experiment_dir"] / f"trials_{search["model"][:-3]}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -48,11 +50,13 @@ def save_trials_to_json(trial: Trial, search: dict[str, Any], config: dict[str, 
 
 
 def objective(trial: Trial, search: dict[str, Any]) -> float:
-    epochs = trial.suggest_int("epochs", search["epochs_min"], search["epochs_max"], step=search["epochs_step"])
+    epochs = trial.suggest_int(
+        "epochs", search["epochs_min"], search["epochs_max"], step=search["epochs_step"]
+    )
     batch = trial.suggest_float("batch", search["batch_min"], search["batch_max"])
     imgsz = trial.suggest_int('imgsz', search["imgsz_min"], search["imgsz_max"], step=search["imgsz_step"])
     lr0 = trial.suggest_float("lr0", search["lr0_min"], search["lr0_max"])
-
+    
     config = {
         "model": str(search["model"]),
         "task": search["task"],
@@ -62,7 +66,7 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
         "batch": batch if batch < 1 else int(batch),
         "imgsz": imgsz,
         "plots": True,
-        "project": str(search["project"])
+        "project": str(search["project"]),
     }
 
     train(config)
@@ -96,7 +100,9 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
     end = time.time()
     duration = end - start
 
-    logger.info('\n Parameter Optimization took %0.2f seconds (%0.1f minutes)' % (duration, duration / 60))
+    logger.info(
+        "\n Parameter Optimization took %0.2f seconds (%0.1f minutes)" % (duration, duration / 60)
+    )
 
     best_config = {
         "model": str(search["model"]),
@@ -109,7 +115,9 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
         best_config["additional_dataset"] = str(search["additional_dataset"])
 
     best_config.update(study.best_params)
-    best_config["batch"] = best_config["batch"] if best_config["batch"] < 1 else int(best_config["batch"])
+    best_config["batch"] = (
+        best_config["batch"] if best_config["batch"] < 1 else int(best_config["batch"])
+    )
 
     return best_config
 
@@ -119,10 +127,13 @@ def main(path_to_hyperparameters_search_config: Path):
     searches = read_from_json(path_to_hyperparameters_search_config)
 
     for search in searches:
-        current_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         logger.info(f"Current timestamp: {current_timestamp}")
 
-        runs_dir = PROJ_ROOT / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
+        runs_dir = (
+            PROJ_ROOT
+            / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
+        )
         search["project"] = runs_dir
 
         experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"

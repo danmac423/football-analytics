@@ -1,13 +1,18 @@
-from football_analytics.utils.utils import video_frames_generator, list_to_nparray_in_dict, create_video_sink
-from services.config import TRACKER_SERVICE_URL
-from PIL import Image, ImageDraw
-from requests import post
-import cv2
-import numpy as np
-from ultralytics import YOLO
-import supervision as sv
 import argparse
 
+import cv2
+import numpy as np
+import supervision as sv
+from PIL import Image
+from requests import post
+from ultralytics import YOLO
+
+from football_analytics.utils.utils import (
+    create_video_sink,
+    list_to_nparray_in_dict,
+    video_frames_generator,
+)
+from services.config import TRACKER_SERVICE_URL
 
 # PITCH_KEYPOINTS_DETECTION_MODEL = YOLO("models/football-pitch-keypoints-detector-n.pt").to("mps")
 
@@ -109,7 +114,9 @@ def run_pitch_keypoints_detection(source_video_path: str):
         image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
         # results = PITCH_KEYPOINTS_DETECTION_MODEL(image, mode="pose", imgsz=640)[0]
-        results = YOLO("models/football-pitch-keypoints-detector-n.pt").to("mps")(image, mode="pose", imgsz=640)[0]
+        results = YOLO("models/football-pitch-keypoints-detector-n.pt").to("mps")(
+            image, mode="pose", imgsz=640
+        )[0]
 
         detections = sv.Detections.from_ultralytics(results)
         keypoints = sv.KeyPoints.from_ultralytics(results)

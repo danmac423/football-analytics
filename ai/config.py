@@ -25,9 +25,18 @@ RUNS_DIR = PROJ_ROOT / "runs"
 
 # Kaggle sources
 KAGGLE_DATASETS = [
-    {"id": "danielmachniak/football-players-detection", "path": RAW_DATA_DIR / "football-players-detection"},
-    {"id": "danielmachniak/football-pitch-keypoints-detection", "path": RAW_DATA_DIR / "football-pitch-keypoints-detection"},
-    {"id": "dominikaboguszewska/football-ball-detection", "path": RAW_DATA_DIR / "football-ball-detection"},
+    {
+        "id": "danielmachniak/football-players-detection",
+        "path": RAW_DATA_DIR / "football-players-detection",
+    },
+    {
+        "id": "danielmachniak/football-pitch-keypoints-detection",
+        "path": RAW_DATA_DIR / "football-pitch-keypoints-detection",
+    },
+    {
+        "id": "dominikaboguszewska/football-ball-detection",
+        "path": RAW_DATA_DIR / "football-ball-detection",
+    },
 ]
 
 # If tqdm is installed, configure loguru with tqdm.write
