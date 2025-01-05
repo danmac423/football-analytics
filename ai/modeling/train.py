@@ -27,7 +27,7 @@ def main(training_config_path: Path):
     logger.info(f"Reading configuration from {training_config_path}")
 
     for config in read_from_json(training_config_path):
-        current_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         logger.info(f"Current timestamp: {current_timestamp}")
 
         if "project" not in config.keys():
@@ -50,4 +50,3 @@ def main(training_config_path: Path):
 
 if __name__ == "__main__":
     app()
-
