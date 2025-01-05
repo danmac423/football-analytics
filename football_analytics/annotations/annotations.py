@@ -4,12 +4,9 @@ import numpy as np
 import supervision as sv
 from PIL import Image
 from requests import post
-from ultralytics import YOLO
 
 from football_analytics.utils.utils import list_to_nparray_in_dict, video_frames_generator
-from services.config import TRACKER_SERVICE_URL
-
-# PITCH_KEYPOINTS_DETECTION_MODEL = YOLO("models/football-pitch-keypoints-detector-n.pt").to("mps")
+from services.config import PITCH_KEYPOINTS_SERVICE_URL, TRACKER_SERVICE_URL
 
 CUSTOM_PALLETE = sv.ColorPalette(
     {
@@ -76,7 +73,7 @@ def run_player_detection(source_video_path: str, url=TRACKER_SERVICE_URL):
         yield annotated_frame
 
 
-def run_pitch_keypoints_detection(source_video_path: str):
+def run_pitch_keypoints_detection(source_video_path: str, url=PITCH_KEYPOINTS_SERVICE_URL):
     """
     Detects and annotates pitch keypoints and bounding boxes in video frames.
 
@@ -108,13 +105,27 @@ def run_pitch_keypoints_detection(source_video_path: str):
     for frame in video_frames_generator(source_video_path):
         image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-        # results = PITCH_KEYPOINTS_DETECTION_MODEL(image, mode="pose", imgsz=640)[0]
-        results = YOLO("models/football-pitch-keypoints-detector-n.pt").to("mps")(
-            image, mode="pose", imgsz=640
-        )[0]
+        height, width, channels = frame.shape
+        response = post(
+            url,
+            files={"file": frame},
+            data={"height": height, "width": width, "channels": channels},
+        ).json()
 
-        detections = sv.Detections.from_ultralytics(results)
-        keypoints = sv.KeyPoints.from_ultralytics(results)
+
+        detection_response = response["detections"]
+        keypoints_response = response["keypoints"]
+
+        detection_response = list_to_nparray_in_dict(detection_response)
+        keypoints_response = list_to_nparray_in_dict(keypoints_response)
+
+        if not detection_response:
+            print("No detections in this frame.")
+            yield frame
+            continue
+
+        detections = sv.Detections(**detection_response)
+        keypoints = sv.KeyPoints(**keypoints_response)
 
         image = sv.BoxAnnotator().annotate(image, detections)
         image = sv.VertexAnnotator().annotate(image, keypoints)
