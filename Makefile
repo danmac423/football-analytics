@@ -81,7 +81,7 @@ data: requirements
 # Usage example: make train training_config_path=../configurations/train.json
 .PHONY: train $(training_config_path)
 train:
-	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/train.py $(training_config_path)
+	cd models && $(PYTHON_INTERPRETER) ../ai/modeling/train.py $(training_config_path)
 
 
 ## Make validate
@@ -89,7 +89,7 @@ train:
 .PHONY: validate
 models_to_validate ?=
 validate:
-	cd models && $(PYTHON_INTERPRETER) ../football_analytics/modeling/validate.py $(models_to_validate)
+	cd models && $(PYTHON_INTERPRETER) ../ai/modeling/validate.py $(models_to_validate)
 
 
 #################################################################################
@@ -101,7 +101,7 @@ validate:
 # Usage example: make optuna_hyperparameter_search path_to_hyperparameters_search_config=../configurations/hyperparameter_search.json
 .PHONY: optuna_hyperparameter_search $(path_to_hyperparameters_search_config)
 optuna_hyperparameter_search:
-	cd models && $(PYTHON_INTERPRETER) ../football_analytics/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
+	cd models && $(PYTHON_INTERPRETER) ../ai/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
 
 
 ## Make tensorboard
