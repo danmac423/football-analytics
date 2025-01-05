@@ -18,6 +18,11 @@ requirements:
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
 
+## Install Python Dependencies with uv
+.PHONY: uv
+uv:
+	uv sync
+	uv pip install -e .
 
 
 ## Delete all compiled Python files
