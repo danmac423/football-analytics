@@ -68,7 +68,7 @@ run_service:
 # Usage example: make run_players_detection source_video_path=data/input/test_video.mp4 output_video_path=data/output/output_video.mp4
 .PHONY: run_players_detection $(source_video_path) $(output_video_path)
 run_players_detection:
-	$(PYTHON_INTERPRETER) football_analytics/annotations/annotations.py $(source_video_path) $(output_video_path)
+	$(PYTHON_INTERPRETER) scripts/run_analytics.py $(source_video_path) $(output_video_path)
 
 
 #################################################################################

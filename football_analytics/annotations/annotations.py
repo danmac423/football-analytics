@@ -1,4 +1,3 @@
-import argparse
 
 import cv2
 import numpy as np
@@ -7,11 +6,7 @@ from PIL import Image
 from requests import post
 from ultralytics import YOLO
 
-from football_analytics.utils.utils import (
-    create_video_sink,
-    list_to_nparray_in_dict,
-    video_frames_generator,
-)
+from football_analytics.utils.utils import list_to_nparray_in_dict, video_frames_generator
 from services.config import TRACKER_SERVICE_URL
 
 # PITCH_KEYPOINTS_DETECTION_MODEL = YOLO("models/football-pitch-keypoints-detector-n.pt").to("mps")
@@ -129,27 +124,27 @@ def run_pitch_keypoints_detection(source_video_path: str):
         yield annotated_frame
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "source_video_path",
-        type=str,
-        help="Path to the input video file",
-    )
-    parser.add_argument(
-        "output_video_path",
-        type=str,
-        help="Path to the output video file",
-    )
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument(
+#         "source_video_path",
+#         type=str,
+#         help="Path to the input video file",
+#     )
+#     parser.add_argument(
+#         "output_video_path",
+#         type=str,
+#         help="Path to the output video file",
+#     )
 
-    args = parser.parse_args()
-    source_video_path = args.source_video_path
-    output_video_path = args.output_video_path
+#     args = parser.parse_args()
+#     source_video_path = args.source_video_path
+#     output_video_path = args.output_video_path
 
-    out = create_video_sink(source_video_path, output_video_path)
+#     out = create_video_sink(source_video_path, output_video_path)
 
-    for frame in run_player_detection(source_video_path):
-        out.write(frame)
+#     for frame in run_player_detection(source_video_path):
+#         out.write(frame)
 
-    out.release()
-    print(f"Video saved to {output_video_path}")
+#     out.release()
+#     print(f"Video saved to {output_video_path}")
