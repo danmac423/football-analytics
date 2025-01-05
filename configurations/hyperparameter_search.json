@@ -6,14 +6,16 @@
         "epochs_min": 1,
         "epochs_max": 1,
         "epochs_step": 10,
-        "patience": 50,
+        "lr0_min": 0,
+        "lr0_max": 1,
         "batch_min": 0.8,
         "batch_max": 10,
         "imgsz_min": 640,
         "imgsz_max": 1280,
         "imgsz_step": 32,
         "plots": true,
-        "numer_of_trials": 2
+        "numer_of_trials": 2,
+        "additional_dataset": "/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/data/raw/football-ball-detection/data.yaml"
     },
     {
         "model": "yolo11n-pose.pt",
@@ -22,7 +24,8 @@
         "epochs_min": 1,
         "epochs_max": 1,
         "epochs_step": 10,
-        "patience": 50,
+        "lr0_min": 0,
+        "lr0_max": 1,
         "batch_min": 0.8,
         "batch_max": 10,
         "imgsz_min": 640,

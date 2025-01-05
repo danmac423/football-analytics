@@ -51,13 +51,14 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     epochs = trial.suggest_int("epochs", search["epochs_min"], search["epochs_max"], step=search["epochs_step"])
     batch = trial.suggest_float("batch", search["batch_min"], search["batch_max"])
     imgsz = trial.suggest_int('imgsz', search["imgsz_min"], search["imgsz_max"], step=search["imgsz_step"])
+    lr0 = trial.suggest_float("lr0", search["lr0_min"], search["lr0_max"])
 
     config = {
         "model": str(search["model"]),
         "task": search["task"],
         "data": str(search["data"]),
         "epochs": epochs,
-        "patience": search["patience"],
+        "lr0": lr0,
         "batch": batch if batch < 1 else int(batch),
         "imgsz": imgsz,
         "plots": True,
@@ -102,7 +103,6 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
         "task": "detect",
         "data": str(search["data"]),
         "plots": search["plots"],
-        "patience": search["patience"],
     }
 
     if "additional_dataset" in search.keys():
