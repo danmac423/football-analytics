@@ -54,9 +54,11 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
         "epochs", search["epochs_min"], search["epochs_max"], step=search["epochs_step"]
     )
     batch = trial.suggest_float("batch", search["batch_min"], search["batch_max"])
-    imgsz = trial.suggest_int('imgsz', search["imgsz_min"], search["imgsz_max"], step=search["imgsz_step"])
+    imgsz = trial.suggest_int(
+        "imgsz", search["imgsz_min"], search["imgsz_max"], step=search["imgsz_step"]
+    )
     lr0 = trial.suggest_float("lr0", search["lr0_min"], search["lr0_max"])
-    
+
     config = {
         "model": str(search["model"]),
         "task": search["task"],
