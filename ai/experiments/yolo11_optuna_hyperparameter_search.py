@@ -79,9 +79,9 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
 
         train(config)
 
-        train_number = 2 * (trial.number + 1)
+        train_number = str(2 * (trial.number + 1))
     else:
-        train_number = trial.number + 1 if trial.number >= 1 else ""
+        train_number = str(trial.number + 1) if trial.number >= 1 else ""
 
     best_file = search["project"] / f"train{train_number}/weights/best.pt"
 
@@ -149,7 +149,7 @@ def main(path_to_hyperparameters_search_config: Path):
         output_path = search["experiment_dir"] / f"best_config_{search["model"][:-3]}.json"
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        write_to_json(output_path, best_config)
+        write_to_json(output_path, [best_config])
         logger.info(f"Saved best config to {output_path}")
 
 
