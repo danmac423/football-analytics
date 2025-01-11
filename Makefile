@@ -65,9 +65,10 @@ run_service:
 	uvicorn services.track.app:app --host 0.0.0.0 --port 8000 --reload
 
 ## Run players detection
-# Usage example: make run_players_detection source_video_path=data/input/test_video.mp4 output_video_path=data/output/output_video.mp4
-.PHONY: run_players_detection $(source_video_path) $(output_video_path)
-run_players_detection:
+# Usage example:
+# make run_players_detection source_video_path=data/input/test_video.mp4 output_video_path=data/output/output_video.mp4
+.PHONY: run_analytics $(source_video_path) $(output_video_path)
+run_analytics:
 	$(PYTHON_INTERPRETER) scripts/run_analytics.py $(source_video_path) $(output_video_path)
 
 

@@ -4,25 +4,21 @@ from football_analytics.annotations.annotations import (
     run_pitch_keypoints_detection,
     run_player_detection,
 )
-from football_analytics.utils.utils import create_video_sink
+from football_analytics.utils.utils import create_video_sink, video_frames_generator
 
 
-def run_player_annotations(source_video_path, output_video_path):
+def run_analytics(source_video_path, output_video_path):
     out = create_video_sink(source_video_path, output_video_path)
 
-    for frame in run_player_detection(source_video_path):
-        out.write(frame)
+    for frame in video_frames_generator(source_video_path):
+        frame_with_players = next(run_player_detection(frame))
+
+        frame_with_annotations = next(run_pitch_keypoints_detection(frame_with_players))
+
+        out.write(frame_with_annotations)
 
     out.release()
-
-def run_pitch_keypoints_annotations(source_video_path, output_video_path):
-    out = create_video_sink(source_video_path, output_video_path)
-
-    for frame in run_pitch_keypoints_detection(source_video_path):
-        out.write(frame)
-
-    out.release()
-
+    print(f"Video saved to {output_video_path}")
 
 
 
@@ -42,7 +38,5 @@ if __name__ == "__main__":
     source_video_path = args.source_video_path
     output_video_path = args.output_video_path
 
-    # run_player_annotations(source_video_path, output_video_path)
-    run_pitch_keypoints_annotations(source_video_path, output_video_path)
+    run_analytics(source_video_path, output_video_path)
 
-    print(f"Video saved to {output_video_path}")

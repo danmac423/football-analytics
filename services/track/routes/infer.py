@@ -3,7 +3,7 @@ import numpy as np
 import supervision as sv
 from fastapi import APIRouter, File, Form, UploadFile
 from PIL import Image
-from ultralytics import YOLO
+from ultralytics import YOLO  # type: ignore
 
 from football_analytics.utils.utils import serialize_object
 

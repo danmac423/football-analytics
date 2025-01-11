@@ -90,7 +90,7 @@ def create_video_sink(source_video_path: str, output_video_path: str) -> cv2.Vid
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v") # type: ignore
     sink = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
     return sink
