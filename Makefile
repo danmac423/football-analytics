@@ -78,7 +78,7 @@ run_players_detection:
 
 ## Make Dataset
 .PHONY: data
-data: requirements
+data: 
 	$(PYTHON_INTERPRETER) football_analytics/dataset.py
 
 
