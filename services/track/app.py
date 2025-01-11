@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from services.track.routes.infer import infer_router
 
+from services.track.routes.infer import infer_router
 
 app = FastAPI()
 
