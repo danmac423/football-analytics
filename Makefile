@@ -79,7 +79,7 @@ run_players_detection:
 ## Make Dataset
 .PHONY: data
 data: 
-	$(PYTHON_INTERPRETER) football_analytics/dataset.py
+	$(PYTHON_INTERPRETER) ai/dataset.py
 
 
 ## Make train
