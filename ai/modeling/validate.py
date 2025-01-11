@@ -9,11 +9,11 @@ from ultralytics.utils.metrics import DetMetrics
 app = typer.Typer()
 
 
-def validate(path_to_best: Path) -> DetMetrics:
+def validate(path_to_best: Path, project_path: Path) -> DetMetrics:
     logger.info(f"Validating model from {path_to_best}")
 
     model = YOLO(path_to_best)
-    metrics = model.val()
+    metrics = model.val(project=project_path)
 
     return metrics
 
@@ -21,7 +21,9 @@ def validate(path_to_best: Path) -> DetMetrics:
 @app.command()
 def main(models_to_validate: list[Path]):
     for model in models_to_validate:
-        metrics = validate(model)
+        project_path = model.parents[2]
+
+        metrics = validate(model, project_path)
 
         logger.info(f"mAP50-95: {metrics.box.map}")
         logger.info(f"mAP50: {metrics.box.map50}")
