@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package yolo.ball_detection;
+
+service YOLOBallInferenceService {
+    rpc InferenceBall (stream Frame) returns (stream BallInferenceResponse);
+}
+
+message Frame {
+    int32 frame_id = 1;
+    bytes content = 2; 
+}
+
+message BallInferenceResponse {
+    int32 frame_id = 1;
+    repeated BoundingBox boxes = 2;
+}
+
+message BoundingBox {
+    float x1_n = 1;
+    float y1_n = 2;
+    float x2_n = 3;
+    float y2_n = 4;
+    float confidence = 5;
+    string class_label = 6;
+}
+
+
