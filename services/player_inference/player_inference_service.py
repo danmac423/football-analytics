@@ -7,21 +7,25 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from services.config import DEVICE, PLAYER_INFERENCE_MODEL_PATH
+from services.config import DEVICE, PLAYER_INFERENCE_MODEL_PATH, PLAYER_INFERENCE_SERVICE_ADDRESS
 from services.player_inference.grpc_files import player_inference_pb2, player_inference_pb2_grpc
 
 
 class YOLOPlayerInferenceServiceServicer(
     player_inference_pb2_grpc.YOLOPlayerInferenceServiceServicer
 ):
-    def __init__(self, model_path):
-        self.model = YOLO(model_path).to(DEVICE)
+    """YOLOPlayerInferenceServiceServicer class to implement the gRPC service.
+
+    Attributes:
+        model (YOLO): YOLO model object
+    """
+
+    def __init__(self):
+        self.model = YOLO(PLAYER_INFERENCE_MODEL_PATH).to(DEVICE)
 
     def InferencePlayers(
-            self,
-            request_iterator: Iterator[player_inference_pb2.Frame],
-            context: grpc.ServicerContext
-        ) -> Generator[player_inference_pb2.PlayerInferenceResponse, Any, Any]:
+        self, request_iterator: Iterator[player_inference_pb2.Frame], context: grpc.ServicerContext
+    ) -> Generator[player_inference_pb2.PlayerInferenceResponse, Any, Any]:
         """InferencePlayers method for the gRPC service which takes a stream of frames
         and returns the response with the bounding boxes.
 
@@ -51,13 +55,12 @@ class YOLOPlayerInferenceServiceServicer(
                         x2_n=x2_n,
                         y2_n=y2_n,
                         confidence=box.conf.item(),
-                        class_label=labels[int(box.cls.item())]
+                        class_label=labels[int(box.cls.item())],
                     )
                 )
 
             yield player_inference_pb2.PlayerInferenceResponse(
-                frame_id=frame.frame_id,
-                boxes=boxes
+                frame_id=frame.frame_id, boxes=boxes
             )
 
 
@@ -65,16 +68,15 @@ def serve():
     """
     Function to start the gRPC server for the YOLO Player Detection Service.
     """
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     player_inference_pb2_grpc.add_YOLOPlayerInferenceServiceServicer_to_server(
-        YOLOPlayerInferenceServiceServicer(PLAYER_INFERENCE_MODEL_PATH),
-        server
+        YOLOPlayerInferenceServiceServicer(), server
     )
-    server.add_insecure_port('[::]:50052')
-    print("YOLO Player Detection Service is running on port 50052")
+    server.add_insecure_port(PLAYER_INFERENCE_SERVICE_ADDRESS)
+    print(f"YOLO Player Detection Service is running on {PLAYER_INFERENCE_SERVICE_ADDRESS}")
     server.start()
     server.wait_for_termination()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     serve()
