@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime
 
@@ -17,7 +18,6 @@ from ai.modeling.validate import validate
 
 
 RESULTS_DIRECTORY = PROJ_ROOT / "ai/experiments/results/yolo11_optuna_hyperparameter_search"
-global current_timestamp
 
 
 app = typer.Typer()
@@ -37,8 +37,11 @@ def save_trials_to_json(
     else:
         trials_data = []
 
-    config["model"] = search["model"]
+    config["model"] = search.get("model")
     config["value"] = value
+
+    if "remove_ball_label" in search.keys():
+        config["remove_ball_label"] = search.get("remove_ball_label")
 
     trials_data.append(config)
     write_to_json(output_path, trials_data)
@@ -108,7 +111,7 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     )
 
     if "remove_ball_label" in search.keys():
-        do_remove_ball_label(config, current_timestamp)
+        config = do_remove_ball_label(config, search.get("current_timestamp"))
 
     train(config)
 
@@ -161,6 +164,7 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
 
 def prepare_search_paths(search: dict[str, Any]) -> dict[str, Any]:
     current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    search["current_timestamp"] = current_timestamp
     logger.info(f"Current timestamp: {current_timestamp}")
 
     runs_dir = (
@@ -173,6 +177,8 @@ def prepare_search_paths(search: dict[str, Any]) -> dict[str, Any]:
     search["experiment_dir"] = experiment_dir
 
     logger.info(f"Using experiment directory: {experiment_dir}")
+
+    search["data"] = os.path.abspath(search["data"])
 
     return search
 

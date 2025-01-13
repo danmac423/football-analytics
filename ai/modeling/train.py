@@ -23,7 +23,7 @@ def train(config: dict):
     model.train(**config)
 
 
-def do_remove_ball_label(config: dict[str, Any], current_timestamp: str):
+def do_remove_ball_label(config: dict[str, Any], current_timestamp: str) -> dict[str, Any]:
     dataset_directory = config["data"]
 
     if os.path.isfile(dataset_directory):
@@ -44,7 +44,7 @@ def do_remove_ball_label(config: dict[str, Any], current_timestamp: str):
     remove_ball_label_from_data_yaml(config["data"])
     remove_label_zero(config["data"])
 
-    config.pop("remove_ball_label")
+    return config
 
 
 @app.command()
@@ -63,7 +63,8 @@ def main(training_config_path: Path):
         logger.info(f"Saving training run to: {config['project']}")
 
         if "remove_ball_label" in config.keys():
-            do_remove_ball_label(config, current_timestamp)
+            config = do_remove_ball_label(config, current_timestamp)
+            config.pop("remove_ball_label")
 
         train(config)
 
