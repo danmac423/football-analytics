@@ -25,6 +25,7 @@
         "epochs": 100,
         "batch": 5,
         "imgsz": 1280,
-        "plots": true
+        "plots": true,
+        "remove_label": true
     }
 ]
