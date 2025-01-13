@@ -91,11 +91,10 @@ train:
 
 
 ## Make validate
-# Usage example: make validate models_to_validate="runs/detect/train2/weights/best.pt runs/detect/train3/weights/best.pt"
+# Usage example: make validate validation_config_path=configurations/validate.json
 .PHONY: validate
-models_to_validate ?=
 validate:
-	$(PYTHON_INTERPRETER) ai/modeling/validate.py $(models_to_validate)
+	$(PYTHON_INTERPRETER) ai/modeling/validate.py $(validation_config_path)
 
 
 #################################################################################

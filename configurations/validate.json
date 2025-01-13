@@ -1,16 +1,16 @@
 [
   {
-    "model_to_validate": "runs/yolo11n/train_20250113_193917/train/weights/best.pt",
+    "model": "runs/yolo11n/train_20250113_193917/train/weights/best.pt",
     "task": "detect",
     "data": "data/raw/football-players-detection/data.yaml"
   },
   {
-    "model_to_validate": "runs/yolo11n/train_20250113_194424/train/weights/best.pt",
+    "model": "runs/yolo11n/train_20250113_194424/train/weights/best.pt",
     "task": "detect",
     "data": "data/raw/football-players-detection-copy-20250113_194424/data.yaml"
   },
   {
-    "model_to_validate": "runs/yolo11n-pose/train_20250113_194202/train/weights/best.pt",
+    "model": "runs/yolo11n-pose/train_20250113_194202/train/weights/best.pt",
     "task": "pose",
     "data": "data/raw/football-pitch-keypoints-detection/data.yaml"
   }
