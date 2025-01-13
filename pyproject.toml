@@ -44,6 +44,8 @@ dependencies = [
     "kagglehub",
     "tensorboard",
     "optuna",
+    "grpcio>=1.69.0",
+    "grpcio-tools>=1.69.0"
   ]
 
 [tool.ruff]
@@ -51,7 +53,12 @@ line-length = 99
 
 [tool.ruff.lint]
 extend-select = ["E501"]
+select = ["I", "F"]
 
 [tool.pytest.ini_options]
 pythonpath = ["football_analytics"]
 addopts = "--cov=football_analytics --cov-report=term-missing"
+
+[tool.mypy]
+check_untyped_defs = true
+ignore_missing_imports = true
