@@ -15,26 +15,26 @@ app = typer.Typer()
 
 
 def validate(config: dict[str, Any]) -> DetMetrics:
-    model = config.pop("model")
-    model = YOLO(model)
+    model_path = config.pop("model")
 
-    logger.info(f"Validating model from {model}")
+    logger.info(f"Loading model from {model_path}")
+    model = YOLO(model_path)
+
     logger.info(f"Validating model with configuration {config}")
-
-    print(config)
-
     metrics = model.val(**config)
 
     return metrics
 
 
 @app.command()
-def main(validation_config_path: Path = Path("/home/dominika/Desktop/24Z_sem5/ZPRP/football-analytics/configurations/b.json")):
+def main(validation_config_path: Path):
     logger.info(f"Reading configuration from {validation_config_path}")
 
     for config in read_from_json(validation_config_path):
-        # config["data"] = os.path.abspath(config["data"])
-        # config["model"] = os.path.abspath(config["model"])
+        config["model"] = os.path.abspath(config["model"])
+
+        if "data" in config.keys():
+            config["data"] = os.path.abspath(config["data"])
 
         if "project" not in config.keys():
             config["project"] = Path(config["model"]).parents[2]
