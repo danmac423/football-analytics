@@ -43,6 +43,16 @@ VERTEX_ANNOTATOR = sv.VertexAnnotator(color=sv.Color.from_hex(KEYPOINTS_COLOR))
 
 
 class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManagerServiceServicer):
+    """
+    InferenceManagerServiceServicer is the class that implements the gRPC server
+    for the Inference Manager service.
+
+    Attributes:
+        ball_stub: The gRPC stub for the Ball Inference service.
+        player_stub: The gRPC stub for the Player Inference service.
+        keypoints_stub: The gRPC stub for the Keypoints Detection service.
+    """
+
     def __init__(self):
         self.ball_stub = ball_inference_pb2_grpc.YOLOBallInferenceServiceStub(
             grpc.insecure_channel(BALL_INFERENCE_SERVICE_ADDRESS)
@@ -57,6 +67,15 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
     def ProcessFrames(
         self, request_iterator: Iterator[ball_inference_pb2.Frame], context: grpc.ServicerContext
     ) -> Generator[inference_manager_pb2.Frame, Any, Any]:
+        """
+        ProcessFrames is the gRPC method that processes the frames by calling the Ball Inference,
+        Player Inference, and Keypoints Detection services.
+
+        Args:
+            request_iterator (Iterator[ball_inference_pb2.Frame]): The iterator of frames
+            to process.
+            context (grpc.ServicerContext): The context of the gRPC request.
+        """
         for frame in request_iterator:
             ball_response: ball_inference_pb2.BallInferenceResponse = next(
                 self.ball_stub.InferenceBall(iter([frame]))
@@ -157,6 +176,9 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
 
 
 def serve():
+    """
+    serve starts the gRPC server for the Inference Manager service.
+    """
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     servicer = InferenceManagerServiceServicer()
 
