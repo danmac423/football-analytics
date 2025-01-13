@@ -124,33 +124,43 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
     return best_config
 
 
+def prepare_search_paths(search: dict[str, Any]) -> dict[str, Any]:
+    current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    logger.info(f"Current timestamp: {current_timestamp}")
+
+    runs_dir = (
+            PROJ_ROOT
+            / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
+    )
+    search["project"] = runs_dir
+
+    experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
+    search["experiment_dir"] = experiment_dir
+
+    logger.info(f"Using experiment directory: {experiment_dir}")
+
+    return search
+
+
+def save_best_configuration(search: dict[str, Any], best_config: dict[str, Any]) -> None:
+    output_path = search["experiment_dir"] / f"best_config_{search["model"][:-3]}.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    write_to_json(output_path, [best_config])
+    logger.info(f"Saved best config to {output_path}")
+
+
 @app.command()
 def main(path_to_hyperparameters_search_config: Path):
     searches = read_from_json(path_to_hyperparameters_search_config)
 
     for search in searches:
-        current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        logger.info(f"Current timestamp: {current_timestamp}")
-
-        runs_dir = (
-            PROJ_ROOT
-            / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
-        )
-        search["project"] = runs_dir
-
-        experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
-        search["experiment_dir"] = experiment_dir
-
-        logger.info(f"Using experiment directory: {experiment_dir}")
+        search = prepare_search_paths(search)
 
         best_config = get_best_config(search)
         logger.info(f"Found best configuration: {best_config}")
 
-        output_path = search["experiment_dir"] / f"best_config_{search["model"][:-3]}.json"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        write_to_json(output_path, [best_config])
-        logger.info(f"Saved best config to {output_path}")
+        save_best_configuration(search, best_config)
 
 
 if __name__ == "__main__":
