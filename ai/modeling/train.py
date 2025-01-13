@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -22,6 +23,56 @@ def train(config: dict):
     model.train(**config)
 
 
+def remove_label():
+    datasets_dirs = os.listdir(f"{HOME}/datasets")
+    datasets_dirs = [os.path.abspath(dir) for dir in datasets_dirs]
+
+    datasests_to_clear = ["test", "train", "valid"]
+
+    for datasets_dir in datasets_dirs:
+        for dataset_to_clear in datasests_to_clear:
+            for file_name in os.listdir(f"{datasets_dir}/{dataset_to_clear}/labels"):
+                file_path = f"{datasets_dir}/{dataset_to_clear}/labels/{file_name}"
+
+                with open(file_path, "r+") as f:
+                    lines = f.readlines()
+                    f.seek(0)
+                    f.truncate(0)
+                    for line in lines:
+                        if line.startswith("0"):
+                            continue
+
+                        processed_line = " ".join(
+                            str(int(float(value)) - 1) if i == 0 else value
+                            for i, value in enumerate(line.split())
+                        )
+                        f.write(processed_line + "\n")
+
+    datasets_dirs = os.listdir(f"{HOME}/datasets")
+    datasets_dirs = [os.path.abspath(dir) for dir in datasets_dirs]
+
+    datasests_to_clear = ["test", "train", "valid"]
+
+    for datasets_dir in datasets_dirs:
+        for dataset_to_clear in datasests_to_clear:
+            for file_name in os.listdir(f"{datasets_dir}/{dataset_to_clear}/labels"):
+                file_path = f"{datasets_dir}/{dataset_to_clear}/labels/{file_name}"
+
+                with open(file_path, "r+") as f:
+                    lines = f.readlines()
+                    f.seek(0)
+                    f.truncate(0)
+                    for line in lines:
+                        if line.startswith("0"):
+                            continue
+
+                        processed_line = " ".join(
+                            str(int(float(value)) - 1) if i == 0 else value
+                            for i, value in enumerate(line.split())
+                        )
+                        f.write(processed_line + "\n")
+
+
 @app.command()
 def main(training_config_path: Path):
     logger.info(f"Reading configuration from {training_config_path}")
@@ -35,17 +86,7 @@ def main(training_config_path: Path):
 
         logger.info(f"Saving training run to: {config['project']}")
 
-        if "additional_dataset" in config.keys():
-            additional_dataset = config.pop("additional_dataset")
-
-            train(config)
-
-            config["data"] = additional_dataset
-            config["model"] = config["project"] / "train" / "weights" / "best.pt"
-
-            train(config)
-        else:
-            train(config)
+        train(config)
 
 
 if __name__ == "__main__":
