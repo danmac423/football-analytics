@@ -12,11 +12,12 @@ from typing import Any
 
 from ai.config import PROJ_ROOT
 from ai.config_io import write_to_json, read_from_json
-from ai.modeling.train import train
+from ai.modeling.train import train, do_remove_ball_label
 from ai.modeling.validate import validate
 
 
 RESULTS_DIRECTORY = PROJ_ROOT / "ai/experiments/results/yolo11_optuna_hyperparameter_search"
+global current_timestamp
 
 
 app = typer.Typer()
@@ -55,7 +56,8 @@ def create_config(
         imgsz: int = None,
         plots: bool = None,
         project: str = None,
-        mosaic: float = None
+        mosaic: float = None,
+        remove_ball_label: bool = None,
 ) -> dict[str, Any]:
 
     config = {}
@@ -78,6 +80,8 @@ def create_config(
         config["project"] = project
     if mosaic is not None:
         config["mosaic"] = mosaic
+    if remove_ball_label is not None:
+        config["remove_ball_label"] = remove_ball_label
 
     return config
 
@@ -103,6 +107,9 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
         mosaic=search.get("mosaic")
     )
 
+    if "remove_ball_label" in search.keys():
+        do_remove_ball_label(config, current_timestamp)
+
     train(config)
 
     train_number = str(trial.number + 1) if trial.number >= 1 else ""
@@ -117,7 +124,7 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     return map50_95
 
 
-def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
+def run_trial(search: dict[str, Any]) -> optuna.Study:
     start = time.time()
 
     study = optuna.create_study(direction="maximize")
@@ -130,12 +137,18 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
         "\n Parameter Optimization took %0.2f seconds (%0.1f minutes)" % (duration, duration / 60)
     )
 
+    return study
+
+def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
+    study = run_trial(search)
+
     best_config = create_config(
         model=str(search.get("model")),
         task="detect",
         data=str(search.get("data")),
         plots=search.get("plots"),
-        mosaic=search.get("mosaic")
+        mosaic=search.get("mosaic"),
+        remove_ball_label=search.get("remove_ball_label"),
     )
 
     best_config.update(study.best_params)
