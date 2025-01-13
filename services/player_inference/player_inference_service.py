@@ -14,8 +14,13 @@ from services.player_inference.grpc_files import player_inference_pb2, player_in
 class YOLOPlayerInferenceServiceServicer(
     player_inference_pb2_grpc.YOLOPlayerInferenceServiceServicer
 ):
-    def __init__(self, model_path):
-        self.model = YOLO(model_path).to(DEVICE)
+    """YOLOPlayerInferenceServiceServicer class to implement the gRPC service.
+
+    Attributes:
+        model (YOLO): YOLO model object
+    """
+    def __init__(self):
+        self.model = YOLO(PLAYER_INFERENCE_MODEL_PATH).to(DEVICE)
 
     def InferencePlayers(
             self,
@@ -67,7 +72,7 @@ def serve():
     """
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     player_inference_pb2_grpc.add_YOLOPlayerInferenceServiceServicer_to_server(
-        YOLOPlayerInferenceServiceServicer(PLAYER_INFERENCE_MODEL_PATH),
+        YOLOPlayerInferenceServiceServicer(),
         server
     )
     server.add_insecure_port('[::]:50052')
