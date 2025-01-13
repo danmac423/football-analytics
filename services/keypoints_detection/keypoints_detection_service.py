@@ -1,0 +1,107 @@
+from concurrent import futures
+from typing import Any, Generator, Iterator
+
+import cv2
+import grpc
+import numpy as np
+from ultralytics import YOLO
+from ultralytics.engine.results import Results
+
+from services.config import (
+	DEVICE,
+	KEYPOINTS_DETECTION_MODEL_PATH,
+	KEYPOINTS_DETECTION_SERVICE_ADDRESS,
+)
+from services.keypoints_detection.grpc_files import (
+	keypoints_detection_pb2,
+	keypoints_detection_pb2_grpc,
+)
+
+
+class YOLOKeypointsDetectionServiceServicer(
+	keypoints_detection_pb2_grpc.YOLOKeypointsDetectionServiceServicer
+):
+	def __init__(self):
+		self.model = YOLO(KEYPOINTS_DETECTION_MODEL_PATH).to(DEVICE)
+
+	def DetectKeypoints(
+			self,
+            request_iterator: Iterator[keypoints_detection_pb2.Frame],
+            context: grpc.ServicerContext
+        ) -> Generator[keypoints_detection_pb2.KeypointsDetectionResponse, Any, Any]:
+		for frame in request_iterator:
+			frame_image = cv2.imdecode(np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR)
+
+			frame_image_resized = cv2.resize(frame_image, (640, 640))
+			results: Results = self.model(frame_image_resized)[0]
+			labels = results.names
+			boxes = []
+			keypoints = []
+
+			original_height, original_width, _ = frame_image.shape
+			height, width, _ = frame_image_resized.shape
+
+			for box, keypoint in zip(results.boxes, results.keypoints):
+				coordinates = box.xyxyn.cpu().numpy().flatten()
+				x1_n, y1_n, x2_n, y2_n = coordinates[:4]
+				boxes.append(
+                    keypoints_detection_pb2.BoundingBox(
+                        x1_n=x1_n,
+                        y1_n=y1_n,
+                        x2_n=x2_n,
+                        y2_n=y2_n,
+                        confidence=box.conf.item(),
+                        class_label=labels[int(box.cls.item())]
+                    )
+                )
+
+				# dziala
+				# for point in keypoint.xyn[0].cpu().numpy():
+				# 	x_n, y_n = point[:2]  # Znormalizowane współrzędne
+				# 	print(x_n, y_n)
+				# 	x = x_n * original_width
+				# 	y = y_n * original_height
+				# 	confidence = point[2] if len(point) > 2 else 0.0
+				# 	keypoints.append(
+				# 		keypoints_detection_pb2.Keypoint(
+				# 			x=float(x),
+				# 			y=float(y),
+				# 			confidence=float(confidence)
+				# 		)
+				# 	)
+
+
+				for point in keypoint.data.cpu().numpy()[0]:
+					x, y = point[:2]
+					x = x / width * original_width
+					y = y / height * original_height
+					confidence = point[2] if len(point) > 2 else 0.0
+					keypoints.append(
+						keypoints_detection_pb2.Keypoint(
+							x=float(x),
+							y=float(y),
+							confidence=float(confidence)
+						)
+					)
+
+
+			yield keypoints_detection_pb2.KeypointsDetectionResponse(
+                frame_id=frame.frame_id,
+                boxes=boxes,
+                keypoints=keypoints
+            )
+
+
+def serve():
+	server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+	keypoints_detection_pb2_grpc.add_YOLOKeypointsDetectionServiceServicer_to_server(
+		YOLOKeypointsDetectionServiceServicer(),
+		server
+	)
+	server.add_insecure_port(KEYPOINTS_DETECTION_SERVICE_ADDRESS)
+	print(f"YOLO Player Detection Service is running on {KEYPOINTS_DETECTION_SERVICE_ADDRESS}")
+	server.start()
+	server.wait_for_termination()
+
+if __name__ == '__main__':
+    serve()

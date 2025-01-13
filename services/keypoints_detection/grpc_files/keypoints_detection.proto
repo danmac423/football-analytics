@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package yolo.keypoints_detection;
+
+service YOLOKeypointsDetectionService {
+  rpc DetectKeypoints (stream Frame) returns (stream KeypointsDetectionResponse);
+}
+
+message Frame {
+  int32 frame_id = 1;        // Unique frame ID
+  bytes content = 2;         // Frame data in binary format
+}
+
+message KeypointsDetectionResponse {
+  int32 frame_id = 1;
+  repeated BoundingBox boxes = 2;
+  repeated Keypoint keypoints = 3;
+}
+
+message BoundingBox {
+  float x1_n = 1;
+  float y1_n = 2;
+  float x2_n = 3;
+  float y2_n = 4;
+  float confidence = 5;
+  string class_label = 6;
+}
+
+message Keypoint {
+  float x = 1;              // Keypoint X coord
+  float y = 2;              // Keypoint Y coord
+  float confidence = 3;     // Keypoint confidence
+}
