@@ -21,6 +21,13 @@ from services.keypoints_detection.grpc_files import (
 class YOLOKeypointsDetectionServiceServicer(
 	keypoints_detection_pb2_grpc.YOLOKeypointsDetectionServiceServicer
 ):
+	"""YOLOKeypointsDetectionServiceServicer is a class that implements the
+	YOLOKeypointsDetectionServiceServicer interface in the generated
+	keypoints_detection_pb2_grpc module.
+
+	Attributes:
+		model (YOLO): An instance of the YOLO class from the ultralytics module.
+	"""
 	def __init__(self):
 		self.model = YOLO(KEYPOINTS_DETECTION_MODEL_PATH).to(DEVICE)
 
@@ -29,6 +36,17 @@ class YOLOKeypointsDetectionServiceServicer(
             request_iterator: Iterator[keypoints_detection_pb2.Frame],
             context: grpc.ServicerContext
         ) -> Generator[keypoints_detection_pb2.KeypointsDetectionResponse, Any, Any]:
+		"""DetectKeypoints method for the gRPC service which takes a stream of frames
+		and returns the response with the bounding boxes and keypoints.
+
+		Args:
+			request_iterator (Iterator[keypoints_detection_pb2.Frame]): request iterator
+			context (grpc.ServicerContext): context object for the request
+
+		Yields:
+			Generator[keypoints_detection_pb2.KeypointsDetectionResponse, Any, Any]: returns the response
+			with frame_id, boxes (normalized), and keypoints
+		"""
 		for frame in request_iterator:
 			frame_image = cv2.imdecode(np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR)
 
@@ -93,6 +111,9 @@ class YOLOKeypointsDetectionServiceServicer(
 
 
 def serve():
+	"""
+	Function that starts the gRPC server and adds the YOLOKeypointsDetectionServiceServicer
+	"""
 	server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
 	keypoints_detection_pb2_grpc.add_YOLOKeypointsDetectionServiceServicer_to_server(
 		YOLOKeypointsDetectionServiceServicer(),
