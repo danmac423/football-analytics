@@ -23,6 +23,16 @@ def read_from_json(path: Path) -> list[dict[Any, Any]]:
             return data
 
 
+def get_nc_from_data_yaml(file_path: str) -> int:
+    with open(file_path, 'r') as file:
+        data = yaml.safe_load(file)
+
+    if 'nc' in data:
+        return data['nc']
+    else:
+        raise KeyError(f"'nc' field is not found in the YAML file at {file_path}.")
+
+
 def remove_ball_label_from_data_yaml(file_path: str):
     with open(file_path, 'r') as file:
         data = yaml.safe_load(file)
@@ -35,7 +45,7 @@ def remove_ball_label_from_data_yaml(file_path: str):
     with open(file_path, 'w') as file:
         yaml.dump(data, file, default_flow_style=False)
 
-    logger.info(f"YAML file at {file_path} modified successfully!")
+    logger.info(f"Successfully modified YAML file at {file_path}!")
 
 
 def remove_label_zero(dataset_directory: str):
