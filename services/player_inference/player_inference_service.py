@@ -7,7 +7,7 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from services.config import PLAYER_INFERENCE_MODEL_PATH
+from services.config import DEVICE, PLAYER_INFERENCE_MODEL_PATH
 from services.player_inference.grpc_files import player_inference_pb2, player_inference_pb2_grpc
 
 
@@ -15,13 +15,24 @@ class YOLOPlayerInferenceServiceServicer(
     player_inference_pb2_grpc.YOLOPlayerInferenceServiceServicer
 ):
     def __init__(self, model_path):
-        self.model = YOLO(model_path).to("mps")
+        self.model = YOLO(model_path).to(DEVICE)
 
     def InferencePlayers(
             self,
             request_iterator: Iterator[player_inference_pb2.Frame],
             context: grpc.ServicerContext
         ) -> Generator[player_inference_pb2.PlayerInferenceResponse, Any, Any]:
+        """InferencePlayers method for the gRPC service which takes a stream of frames
+        and returns the response with the bounding boxes.
+
+        Args:
+            request_iterator (Iterator[player_inference_pb2.Frame]): request iterator
+            context (grpc.ServicerContext): context object for the request
+
+        Yields:
+            Generator[player_inference_pb2.PlayerInferenceResponse, Any, Any]: returns the response
+            with frame_id and boxes
+        """
         for frame in request_iterator:
             frame_image = cv2.imdecode(np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR)
 
@@ -51,6 +62,9 @@ class YOLOPlayerInferenceServiceServicer(
 
 
 def serve():
+    """
+    Function to start the gRPC server for the YOLO Player Detection Service.
+    """
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     player_inference_pb2_grpc.add_YOLOPlayerInferenceServiceServicer_to_server(
         YOLOPlayerInferenceServiceServicer(PLAYER_INFERENCE_MODEL_PATH),
