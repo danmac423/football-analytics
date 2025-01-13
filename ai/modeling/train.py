@@ -1,14 +1,14 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import typer
 from loguru import logger
 from ultralytics import YOLO
 
 from ai.config import RUNS_DIR
-from ai.config_io import read_from_json, remove_label_zero, remove_ball_label_from_data_yaml, get_nc_from_data_yaml, \
-    copy_directory
+from ai.config_io import read_from_json, remove_label_zero, remove_ball_label_from_data_yaml, copy_directory
 
 app = typer.Typer()
 
@@ -21,6 +21,30 @@ def train(config: dict):
 
     logger.info(f"Training model with configuration {config}")
     model.train(**config)
+
+
+def do_remove_ball_label(config: dict[str, Any], current_timestamp: str):
+    dataset_directory = config["data"]
+
+    if os.path.isfile(dataset_directory):
+        data_file = os.path.basename(dataset_directory)
+        dataset_directory = os.path.dirname(dataset_directory)
+        add_data_file = True
+    else:
+        add_data_file = False
+
+    dataset_copy = dataset_directory + f"-copy-{current_timestamp}"
+
+    if add_data_file:
+        config["data"] = dataset_copy + f"/{data_file}"
+
+    copy_directory(dataset_directory, dataset_copy)
+
+    logger.info("Removing ball label")
+    remove_ball_label_from_data_yaml(config["data"])
+    remove_label_zero(config["data"])
+
+    config.pop("remove_ball_label")
 
 
 @app.command()
@@ -39,27 +63,7 @@ def main(training_config_path: Path):
         logger.info(f"Saving training run to: {config['project']}")
 
         if "remove_ball_label" in config.keys():
-            dataset_directory = config["data"]
-
-            if os.path.isfile(dataset_directory):
-                data_file = os.path.basename(dataset_directory)
-                dataset_directory = os.path.dirname(dataset_directory)
-                add_data_file = True
-            else:
-                add_data_file = False
-
-            dataset_copy = dataset_directory + f"-copy-{current_timestamp}"
-
-            if add_data_file:
-                config["data"] = dataset_copy + f"/{data_file}"
-
-            copy_directory(dataset_directory, dataset_copy)
-
-            logger.info("Removing ball label")
-            remove_ball_label_from_data_yaml(config["data"])
-            remove_label_zero(config["data"])
-
-            config.pop("remove_ball_label")
+            do_remove_ball_label(config, current_timestamp)
 
         train(config)
 
