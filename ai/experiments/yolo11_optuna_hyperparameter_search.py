@@ -119,7 +119,14 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
 
     best_file = search["project"] / f"train{train_number}/weights/best.pt"
 
-    metrics = validate(best_file, search["project"])
+    validation_config = create_config(
+        model=best_file,
+        task=config.get("task"),
+        data=str(config.get("data")),
+        project=str(config.get("project")),
+    )
+
+    metrics = validate(validation_config)
     map50_95 = metrics.box.map
 
     save_trials_to_json(trial, search, config, map50_95)
