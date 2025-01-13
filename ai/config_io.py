@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 from pathlib import Path
 from typing import Any
@@ -73,3 +74,16 @@ def remove_label_zero(dataset_directory: str):
                         for i, value in enumerate(line.split())
                     )
                     f.write(processed_line + "\n")
+
+
+def copy_directory(src: str, dest: str):
+    if not os.path.exists(src):
+        raise ValueError(f"Source directory '{src}' does not exist.")
+
+    try:
+        shutil.copytree(src, dest)
+        logger.info(f"Directory copied successfully from '{src}' to '{dest}'.")
+    except FileExistsError:
+        logger.info(f"Destination directory '{dest}' already exists.")
+    except Exception as e:
+        logger.info(f"An error occurred: {e}")
