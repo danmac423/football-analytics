@@ -183,3 +183,5 @@ models/yolo11x.pt
 
 # Temporary files for testing
 configurations/a.json
+configurations/b.json
+configurations/c.json
