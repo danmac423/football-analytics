@@ -7,7 +7,7 @@ from loguru import logger
 from ultralytics import YOLO
 
 from ai.config import RUNS_DIR
-from ai.config_io import read_from_json, remove_label_zero, remove_ball_label_from_data_yaml
+from ai.config_io import read_from_json, remove_label_zero, remove_ball_label_from_data_yaml, get_nc_from_data_yaml
 
 app = typer.Typer()
 
@@ -37,10 +37,15 @@ def main(training_config_path: Path):
 
         logger.info(f"Saving training run to: {config['project']}")
 
-        if "remove_label" in config.keys():
-            remove_ball_label_from_data_yaml(config["data"])
-            remove_label_zero(config["data"])
-            config.pop("remove_label")
+        if "remove_ball_label" in config.keys():
+            if get_nc_from_data_yaml(config["data"]) == 4:
+                logger.info("Removing ball label")
+                remove_ball_label_from_data_yaml(config["data"])
+                remove_label_zero(config["data"])
+            elif get_nc_from_data_yaml(config["data"]) == 3:
+                logger.info("No need to remove ball label")
+
+            config.pop("remove_ball_label")
 
         train(config)
 

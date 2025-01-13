@@ -26,6 +26,6 @@
         "batch": 5,
         "imgsz": 1280,
         "plots": true,
-        "remove_label": true
+        "remove_ball_label": true
     }
 ]
