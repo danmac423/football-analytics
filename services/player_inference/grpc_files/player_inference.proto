@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package yolo.player_inference;
+
+service YOLOPlayerInferenceService {
+  rpc InferencePlayers (stream Frame) returns (stream PlayerInferenceResponse);
+}
+
+message Frame {
+  int32 frame_id = 1;  // Unique frame ID
+  bytes content = 2;   // Frame data in binary format
+}
+
+message PlayerInferenceResponse {
+  int32 frame_id = 1;        // Frame ID
+  repeated BoundingBox boxes = 2;  // List of bounding boxes
+}
+
+message BoundingBox {
+  float x1_n = 1;
+  float y1_n = 2;
+  float x2_n = 3;
+  float y2_n = 4;
+  float confidence = 5;
+  string class_label = 6;
+}

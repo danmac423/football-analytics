@@ -1,2 +1,1 @@
-TRACKER_SERVICE_URL = "http://localhost:8000/infer"
-PITCH_KEYPOINTS_SERVICE_URL = "http://localhost:8000/keypoints"
+PLAYER_INFERENCE_MODEL_PATH="models/player_inference.pt"
