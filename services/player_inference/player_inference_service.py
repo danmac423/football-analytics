@@ -70,7 +70,7 @@ def serve():
     """
     Function to start the gRPC server for the YOLO Player Detection Service.
     """
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     player_inference_pb2_grpc.add_YOLOPlayerInferenceServiceServicer_to_server(
         YOLOPlayerInferenceServiceServicer(),
         server
