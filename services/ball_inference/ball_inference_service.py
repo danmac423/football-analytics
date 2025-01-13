@@ -8,7 +8,7 @@ from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
-from services.config import BALL_INFERENCE_MODEL_PATH, DEVICE
+from services.config import BALL_INFERENCE_MODEL_PATH, BALL_INFERENCE_SERVICE_ADDRESS, DEVICE
 
 
 class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInferenceServiceServicer):
@@ -69,8 +69,8 @@ def serve():
 
     ball_inference_pb2_grpc.add_YOLOBallInferenceServiceServicer_to_server(servicer, server)
 
-    server.add_insecure_port("[::]:50051")
-    print("Server started on port 50051.")
+    server.add_insecure_port(BALL_INFERENCE_SERVICE_ADDRESS)
+    print(f"Server started on {BALL_INFERENCE_SERVICE_ADDRESS}.")
     server.start()
     server.wait_for_termination()
 

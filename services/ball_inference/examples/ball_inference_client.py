@@ -2,6 +2,7 @@ import cv2
 import grpc
 
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
+from services.config import BALL_INFERENCE_SERVICE_ADDRESS
 
 
 def stream_frames(video_path):
@@ -18,14 +19,14 @@ def stream_frames(video_path):
 
 
 def run_client(video_path, output_path):
-    channel = grpc.insecure_channel("localhost:50051")
+    channel = grpc.insecure_channel(BALL_INFERENCE_SERVICE_ADDRESS)
     stub = ball_inference_pb2_grpc.YOLOBallInferenceServiceStub(channel)
 
     cap = cv2.VideoCapture(video_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v") # type: ignore
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     responses = stub.InferenceBall(stream_frames(video_path))
