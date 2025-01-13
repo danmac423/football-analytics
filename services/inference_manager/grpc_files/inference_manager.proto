@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package inference_manager;
+
+service InferenceManagerService {
+  rpc ProcessFrames (stream Frame) returns (stream Frame);
+}
+
+message Frame {
+  int32 frame_id = 1;
+  bytes content = 2;
+}
