@@ -3,7 +3,6 @@ import os
 import queue
 import signal
 import threading
-
 from concurrent import futures
 from queue import Empty
 from typing import Any, Callable, Generator, Iterator
@@ -116,6 +115,8 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                     break
                 queue.put(response)
             logger.info(f"Thread {thread_name} finished successfully.")
+        except grpc.RpcError as e:
+            logger.warning(f"Error in {method_name}: {e.details()}")
         except Exception as e:
             logger.error(f"Error in {method_name}: {e}")
             queue.put(None)
@@ -277,14 +278,14 @@ def shutdown_server(server, servicer: InferenceManagerServiceServicer):
 
     servicer.stop_event.set()
     servicer.close_connections()
-
-    server.stop(grace=5)
-
+    
     for thread_name, thread in servicer.threads.items():
         logger.info(f"Waiting for thread {thread_name} to finish...")
-        thread.join(timeout=10)
+        thread.join()
         if thread.is_alive():
             logger.error(f"Thread {thread_name} did not terminate properly.")
+
+    server.stop(grace=5)
 
     logger.info("All threads finished. Server shut down gracefully.")
 
