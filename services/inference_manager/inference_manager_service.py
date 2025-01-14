@@ -1,3 +1,4 @@
+import logging
 from concurrent import futures
 from typing import Any, Generator, Iterator
 
@@ -42,6 +43,15 @@ TRIANGLE_ANNOTATOR = sv.TriangleAnnotator(
 
 VERTEX_ANNOTATOR = sv.VertexAnnotator(color=sv.Color.from_hex(KEYPOINTS_COLOR))
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("logs/inference_manager_service.log"),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManagerServiceServicer):
     """
@@ -55,6 +65,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
     """
 
     def __init__(self):
+        logger.info("Initializing Inference Manager Service...")
         self.ball_stub = ball_inference_pb2_grpc.YOLOBallInferenceServiceStub(
             grpc.insecure_channel(BALL_INFERENCE_SERVICE_ADDRESS)
         )
@@ -64,6 +75,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         self.keypoints_stub = keypoints_detection_pb2_grpc.YOLOKeypointsDetectionServiceStub(
             grpc.insecure_channel(KEYPOINTS_DETECTION_SERVICE_ADDRESS)
         )
+        logger.info("Inference Manager Service initialized successfully.")
 
     def ProcessFrames(
         self, request_iterator: Iterator[ball_inference_pb2.Frame], context: grpc.ServicerContext
@@ -78,6 +90,8 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             context (grpc.ServicerContext): The context of the gRPC request.
         """
         for frame in request_iterator:
+            logger.debug(f"Processing frame ID: {frame.frame_id}")
+
             ball_response: ball_inference_pb2.BallInferenceResponse = next(
                 self.ball_stub.InferenceBall(iter([frame]))
             )
@@ -94,16 +108,18 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 detections = to_supervision(player_response, frame_ndarray)
 
                 annotated_frame = ELLIPSE_ANNOTATOR.annotate(frame_ndarray, detections)
-            except:
-                pass
+            except Exception as e:
+                logger.error(f"Error annotating players for frame ID {frame.frame_id}: {e}")
+                continue
 
 
             try:
                detections = to_supervision(ball_response, frame_ndarray)
 
                annotated_frame = TRIANGLE_ANNOTATOR.annotate(annotated_frame, detections)
-            except:
-                pass
+            except Exception as e:
+                logger.error(f"Error annotating ball for frame ID {frame.frame_id}: {e}")
+                continue
 
 
             try:
@@ -111,25 +127,32 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
 
                 annotated_frame = VERTEX_ANNOTATOR.annotate(annotated_frame, keypoints)
             except Exception as e:
-                print(e)
-                pass
+                logger.error(f"Error annotating keypoints for frame ID {frame.frame_id}: {e}")
+                continue
 
-            _, frame_bytes = cv2.imencode(".jpg", annotated_frame)
+            try:
+                _, frame_bytes = cv2.imencode(".jpg", annotated_frame)
+                logger.debug(f"Frame ID {frame.frame_id} encoded successfully.")
+                yield inference_manager_pb2.Frame(content=frame_bytes.tobytes())
+            except Exception as e:
+                logger.error(f"Error encoding frame ID {frame.frame_id}: {e}")
+                continue
 
-            yield inference_manager_pb2.Frame(content=frame_bytes.tobytes())
-
+        logger.info("Finished processing frames.")
 
 def serve():
     """
     serve starts the gRPC server for the Inference Manager service.
     """
+    logger.info("Starting Inference Manager Service...")
+
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     servicer = InferenceManagerServiceServicer()
 
     inference_manager_pb2_grpc.add_InferenceManagerServiceServicer_to_server(servicer, server)
 
     server.add_insecure_port(INFERENCE_MANAGER_SERVICE_ADDRESS)
-    print(f"Inference Manager started on {INFERENCE_MANAGER_SERVICE_ADDRESS}.")
+    logger.info(f"Inference Manager started on {INFERENCE_MANAGER_SERVICE_ADDRESS}.")
     server.start()
     server.wait_for_termination()
 
