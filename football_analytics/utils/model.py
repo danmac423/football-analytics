@@ -35,10 +35,19 @@ def to_supervision(ball_response: ball_inference_pb2.BallInferenceResponse, fram
         detections = sv.Detections(
             xyxy=xyxy_array, confidence=confidence_array, class_id=class_id_array
         )
-    except Exception as e:
-        return Exception(e)
 
-    return detections
+        return detections
+
+    except ValueError as ve:
+        print(f"ValueError occurred: {ve}")
+        raise
+    except AttributeError as ae:
+        print(f"AttributeError occurred: {ae}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise
+
 
 
 
@@ -63,10 +72,18 @@ def to_supervision(
         kp_xy_array = np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
 
         keypoints = sv.KeyPoints(xy=kp_xy_array)
-    except Exception as e:
-        return Exception(e)
 
-    return keypoints
+        return keypoints
+
+    except ValueError as ve:
+        print(f"ValueError occurred: {ve}")
+        raise
+    except AttributeError as ae:
+        print(f"AttributeError occurred: {ae}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise
 
 
 
@@ -103,8 +120,15 @@ def to_supervision(
         detections = sv.Detections(
             xyxy=xyxy_array, confidence=confidence_array, class_id=class_id_array
         )
+
+        return detections
+
+    except ValueError as ve:
+        print(f"ValueError occurred: {ve}")
+        raise
+    except AttributeError as ae:
+        print(f"AttributeError occurred: {ae}")
+        raise
     except Exception as e:
-        return Exception(e)
-
-    return detections
-
+        print(f"An unexpected error occurred: {e}")
+        raise
