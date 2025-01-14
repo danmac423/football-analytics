@@ -1,7 +1,9 @@
 import logging
+import os
 import queue
 import signal
 import threading
+
 from concurrent import futures
 from queue import Empty
 from typing import Any, Callable, Generator, Iterator
@@ -25,6 +27,8 @@ from services.keypoints_detection.grpc_files import (
     keypoints_detection_pb2_grpc,
 )
 from services.player_inference.grpc_files import player_inference_pb2, player_inference_pb2_grpc
+
+os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 
 BALL_COLOR = "#FF1493"
 PLAYER_COLORS = ["#00BFFF", "#FF6347", "#FFD700"]

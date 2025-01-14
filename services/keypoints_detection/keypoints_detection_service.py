@@ -1,4 +1,5 @@
 import logging
+import os
 from concurrent import futures
 from typing import Any, Generator, Iterator
 
@@ -17,6 +18,8 @@ from services.keypoints_detection.grpc_files import (
 	keypoints_detection_pb2,
 	keypoints_detection_pb2_grpc,
 )
+
+os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 
 logging.basicConfig(
     level=logging.INFO,

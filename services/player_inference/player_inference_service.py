@@ -1,4 +1,5 @@
 import logging
+import os
 from concurrent import futures
 from typing import Any, Generator, Iterator
 
@@ -10,6 +11,8 @@ from ultralytics.engine.results import Results
 
 from services.config import DEVICE, PLAYER_INFERENCE_MODEL_PATH, PLAYER_INFERENCE_SERVICE_ADDRESS
 from services.player_inference.grpc_files import player_inference_pb2, player_inference_pb2_grpc
+
+os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 
 logging.basicConfig(
     level=logging.INFO,
