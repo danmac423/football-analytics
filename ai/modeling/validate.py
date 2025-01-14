@@ -1,3 +1,6 @@
+import os
+from typing import Any
+
 import typer
 
 from pathlib import Path
@@ -5,25 +8,38 @@ from loguru import logger
 from ultralytics import YOLO
 from ultralytics.utils.metrics import DetMetrics
 
+from ai.config_io import read_from_json
+
 
 app = typer.Typer()
 
 
-def validate(path_to_best: Path, project_path: Path) -> DetMetrics:
-    logger.info(f"Validating model from {path_to_best}")
+def validate(config: dict[str, Any]) -> DetMetrics:
+    model_path = config.pop("model")
 
-    model = YOLO(path_to_best)
-    metrics = model.val(project=project_path)
+    logger.info(f"Loading model from {model_path}")
+    model = YOLO(model_path)
+
+    logger.info(f"Validating model with configuration {config}")
+    metrics = model.val(**config)
 
     return metrics
 
 
 @app.command()
-def main(models_to_validate: list[Path]):
-    for model in models_to_validate:
-        project_path = model.parents[2]
+def main(validation_config_path: Path):
+    logger.info(f"Reading configuration from {validation_config_path}")
 
-        metrics = validate(model, project_path)
+    for config in read_from_json(validation_config_path):
+        config["model"] = os.path.abspath(config["model"])
+
+        if "data" in config.keys():
+            config["data"] = os.path.abspath(config["data"])
+
+        if "project" not in config.keys():
+            config["project"] = Path(config["model"]).parents[2]
+
+        metrics = validate(config)
 
         logger.info(f"mAP50-95: {metrics.box.map}")
         logger.info(f"mAP50: {metrics.box.map50}")
