@@ -3,7 +3,7 @@ import logging
 import queue
 import threading
 from concurrent import futures
-from typing import Any, Generator, Iterator, Callable
+from typing import Any, Callable, Generator, Iterator
 
 import cv2
 import grpc
@@ -28,6 +28,8 @@ from services.player_inference.grpc_files import player_inference_pb2, player_in
 BALL_COLOR = "#FF1493"
 PLAYER_COLORS = ["#00BFFF", "#FF6347", "#FFD700"]
 KEYPOINTS_COLOR = "#FF1493"
+
+DEFAULT_TIMEOUT = 5
 
 ELLIPSE_ANNOTATOR = sv.EllipseAnnotator(color=sv.ColorPalette.from_hex(PLAYER_COLORS), thickness=2)
 ELLIPSE_LABEL_ANNOTATOR = sv.LabelAnnotator(
@@ -72,15 +74,17 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         logger.info("Inference Manager Service initialized successfully.")
 
     def _process_responses(
-        self, stub: object, method_name: str, queue: queue.Queue, frames: list
+        self, stub: object, method_name: str, queue: queue.Queue, frames: list, thread_name: str
     ) -> None:
         """
         Generic method to process responses from a gRPC service.
         """
         try:
+            logger.info(f"Thread {thread_name} started.")
             method = getattr(stub, method_name)
             for response in method(iter(frames)):
                 queue.put(response)
+            logger.info(f"Thread {thread_name} finished successfully.")
         except Exception as e:
             logger.error(f"Error in {method_name}: {e}")
             queue.put(None)
@@ -97,7 +101,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
 
     def _get_from_queue(self, queue: queue.Queue, frame_id: int, queue_name: str) -> Any:
         try:
-            return queue.get(timeout=5)
+            return queue.get(timeout=DEFAULT_TIMEOUT)
         except queue.Empty:
             logger.warning(
                 f"Timeout while waiting for {queue_name} response for frame ID {frame_id}."
@@ -144,7 +148,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         try:
             request_list = list(request_iterator)
         except Exception as e:
-            logger.error(f"Faied to read request_iterator: {e}")
+            logger.error(f"Faied to read request_iterator: {e}", exc_info=True)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Invalid input frames.")
 
         player_queue, ball_queue, keypoints_queue = queue.Queue(), queue.Queue(), queue.Queue()
