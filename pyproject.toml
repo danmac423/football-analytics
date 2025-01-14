@@ -46,6 +46,7 @@ dependencies = [
     "grpcio>=1.69.0",
     "grpcio.tools>=1.69.0",
     "grpc-stubs",
+    "multimethod",
     "optuna",
     "grpcio>=1.69.0",
     "grpcio-tools>=1.69.0"

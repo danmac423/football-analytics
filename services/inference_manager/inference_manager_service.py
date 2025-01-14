@@ -6,6 +6,7 @@ import grpc
 import numpy as np
 import supervision as sv
 
+from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
 from services.config import (
     BALL_INFERENCE_SERVICE_ADDRESS,
@@ -88,82 +89,25 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             )
 
             frame_ndarray = cv2.imdecode(np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR)
-            height, width, _ = frame_ndarray.shape
-
-            player_boxes = player_response.boxes
-
-            xyxy = []
-            confidences = []
-            class_ids = []
-
-            class_ids_map = {"goalkeeper": 0, "player": 1, "referee": 2}
 
             try:
-                for box in player_boxes:
-                    x1 = int(box.x1_n * width)
-                    y1 = int(box.y1_n * height)
-                    x2 = int(box.x2_n * width)
-                    y2 = int(box.y2_n * height)
-
-                    xyxy.append([x1, y1, x2, y2])
-                    confidences.append(box.confidence)
-                    class_ids.append(class_ids_map[box.class_label])
-
-                xyxy_array = np.array(xyxy, dtype=np.float32)
-                confidence_array = np.array(confidences, dtype=np.float32)
-                class_id_array = np.array(class_ids, dtype=object)
-
-                detections = sv.Detections(
-                    xyxy=xyxy_array, confidence=confidence_array, class_id=class_id_array
-                )
+                detections = to_supervision(player_response, frame_ndarray)
 
                 annotated_frame = ELLIPSE_ANNOTATOR.annotate(frame_ndarray, detections)
             except:
                 pass
 
-            ball_boxes = ball_response.boxes
-
-            xyxy = []
-            confidences = []
-            class_ids = []
 
             try:
-                for box in ball_boxes:
-                    x1 = int(box.x1_n * width)
-                    y1 = int(box.y1_n * height)
-                    x2 = int(box.x2_n * width)
-                    y2 = int(box.y2_n * height)
+               detections = to_supervision(ball_response, frame_ndarray)
 
-                    xyxy.append([x1, y1, x2, y2])
-                    confidences.append(box.confidence)
-                    class_ids.append(0)
-
-                xyxy_array = np.array(xyxy, dtype=np.float32)
-                confidence_array = np.array(confidences, dtype=np.float32)
-                class_id_array = np.array(class_ids, dtype=object)
-
-                detections = sv.Detections(
-                    xyxy=xyxy_array, confidence=confidence_array, class_id=class_id_array
-                )
-
-                annotated_frame = TRIANGLE_ANNOTATOR.annotate(annotated_frame, detections)
+               annotated_frame = TRIANGLE_ANNOTATOR.annotate(annotated_frame, detections)
             except:
                 pass
 
-            pitch_keypoints = keypoints_response.keypoints
 
-            kp_xy = []
             try:
-                for kp in pitch_keypoints:
-                    kp_x = int(kp.x)
-                    kp_y = int(kp.y)
-                    confidence = kp.confidence
-
-                    kp_xy.append([(kp_x, kp_y)])
-
-                kp_xy_array = np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
-
-                keypoints = sv.KeyPoints(xy=kp_xy_array)
+                keypoints = to_supervision(keypoints_response, frame_ndarray)
 
                 annotated_frame = VERTEX_ANNOTATOR.annotate(annotated_frame, keypoints)
             except Exception as e:
