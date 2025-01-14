@@ -17,10 +17,7 @@ os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("logs/ball_inference_service.log")
-    ]
+    handlers=[logging.StreamHandler(), logging.FileHandler("logs/ball_inference_service.log")],
 )
 logger = logging.getLogger(__name__)
 
@@ -38,7 +35,6 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
         self.model = YOLO(BALL_INFERENCE_MODEL_PATH).to(DEVICE)
         logger.info(f"YOLO model loaded from {BALL_INFERENCE_MODEL_PATH} on device {DEVICE}.")
 
-
     def InferenceBall(
         self, request_iterator: Iterator[ball_inference_pb2.Frame], context: grpc.ServicerContext
     ) -> Generator[ball_inference_pb2.BallInferenceResponse, Any, Any]:
@@ -54,7 +50,9 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
         """
         for frame in request_iterator:
             try:
-                frame_image = cv2.imdecode(np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR)
+                frame_image = cv2.imdecode(
+                    np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR
+                )
 
                 result: Results = self.model.predict(frame_image)[0]
                 labels = result.names
@@ -76,7 +74,9 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
                     )
 
                 logger.info(f"Frame ID {frame.frame_id} processed with {len(boxes)} detections.")
-                yield ball_inference_pb2.BallInferenceResponse(frame_id=frame.frame_id, boxes=boxes)
+                yield ball_inference_pb2.BallInferenceResponse(
+                    frame_id=frame.frame_id, boxes=boxes
+                )
             except Exception as e:
                 logger.error(f"Error processing frame ID {frame.frame_id}: {e}")
                 context.abort(grpc.StatusCode.UNKNOWN, str(e))
