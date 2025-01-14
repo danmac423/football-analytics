@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime
 
@@ -12,7 +13,7 @@ from typing import Any
 
 from ai.config import PROJ_ROOT
 from ai.config_io import write_to_json, read_from_json
-from ai.modeling.train import train
+from ai.modeling.train import train, do_remove_ball_label
 from ai.modeling.validate import validate
 
 
@@ -36,17 +37,56 @@ def save_trials_to_json(
     else:
         trials_data = []
 
-    config["model"] = search["model"]
+    config["model"] = search.get("model")
     config["value"] = value
 
-    if "additional_dataset" in search.keys():
-        config["data"] = search["data"]
-        config["additional_dataset"] = search["additional_dataset"]
+    if "remove_ball_label" in search.keys():
+        config["remove_ball_label"] = search.get("remove_ball_label")
 
     trials_data.append(config)
     write_to_json(output_path, trials_data)
 
     logger.info(f"Saved trial {trial.number} configuration to {output_path}")
+
+
+def create_config(
+        *,
+        model: str = None,
+        task: str = None,
+        data: str = None,
+        epochs: int = None,
+        batch: float | int = None,
+        imgsz: int = None,
+        plots: bool = None,
+        project: str = None,
+        mosaic: float = None,
+        remove_ball_label: bool = None,
+) -> dict[str, Any]:
+
+    config = {}
+
+    if model is not None:
+        config["model"] = model
+    if task is not None:
+        config["task"] = task
+    if data is not None:
+        config["data"] = data
+    if epochs is not None:
+        config["epochs"] = epochs
+    if batch is not None:
+        config["batch"] = batch
+    if imgsz is not None:
+        config["imgsz"] = imgsz
+    if plots is not None:
+        config["plots"] = plots
+    if project is not None:
+        config["project"] = project
+    if mosaic is not None:
+        config["mosaic"] = mosaic
+    if remove_ball_label is not None:
+        config["remove_ball_label"] = remove_ball_label
+
+    return config
 
 
 def objective(trial: Trial, search: dict[str, Any]) -> float:
@@ -57,35 +97,36 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     imgsz = trial.suggest_int(
         "imgsz", search["imgsz_min"], search["imgsz_max"], step=search["imgsz_step"]
     )
-    lr0 = trial.suggest_float("lr0", search["lr0_min"], search["lr0_max"])
 
-    config = {
-        "model": str(search["model"]),
-        "task": search["task"],
-        "data": str(search["data"]),
-        "epochs": epochs,
-        "lr0": lr0,
-        "batch": batch if batch < 1 else int(batch),
-        "imgsz": imgsz,
-        "plots": True,
-        "project": str(search["project"]),
-    }
+    config = create_config(
+        model=str(search.get("model")),
+        task=search.get("task"),
+        data=str(search.get("data")),
+        epochs=epochs,
+        batch=batch if batch < 1 else int(batch),
+        imgsz=imgsz,
+        plots=search.get("plots"),
+        project=str(search.get("project")),
+        mosaic=search.get("mosaic")
+    )
+
+    if "remove_ball_label" in search.keys():
+        config = do_remove_ball_label(config, search.get("current_timestamp"))
 
     train(config)
 
-    if "additional_dataset" in search.keys():
-        config["data"] = str(search["additional_dataset"])
-        config["model"] = str(search["model"])
-
-        train(config)
-
-        train_number = str(2 * (trial.number + 1))
-    else:
-        train_number = str(trial.number + 1) if trial.number >= 1 else ""
+    train_number = str(trial.number + 1) if trial.number >= 1 else ""
 
     best_file = search["project"] / f"train{train_number}/weights/best.pt"
 
-    metrics = validate(best_file, search["project"])
+    validation_config = create_config(
+        model=best_file,
+        task=config.get("task"),
+        data=str(config.get("data")),
+        project=str(config.get("project")),
+    )
+
+    metrics = validate(validation_config)
     map50_95 = metrics.box.map
 
     save_trials_to_json(trial, search, config, map50_95)
@@ -93,7 +134,7 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     return map50_95
 
 
-def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
+def run_trial(search: dict[str, Any]) -> optuna.Study:
     start = time.time()
 
     study = optuna.create_study(direction="maximize")
@@ -106,15 +147,19 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
         "\n Parameter Optimization took %0.2f seconds (%0.1f minutes)" % (duration, duration / 60)
     )
 
-    best_config = {
-        "model": str(search["model"]),
-        "task": "detect",
-        "data": str(search["data"]),
-        "plots": search["plots"],
-    }
+    return study
 
-    if "additional_dataset" in search.keys():
-        best_config["additional_dataset"] = str(search["additional_dataset"])
+def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
+    study = run_trial(search)
+
+    best_config = create_config(
+        model=str(search.get("model")),
+        task="detect",
+        data=str(search.get("data")),
+        plots=search.get("plots"),
+        mosaic=search.get("mosaic"),
+        remove_ball_label=search.get("remove_ball_label"),
+    )
 
     best_config.update(study.best_params)
     best_config["batch"] = (
@@ -124,33 +169,46 @@ def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
     return best_config
 
 
+def prepare_search_paths(search: dict[str, Any]) -> dict[str, Any]:
+    current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    search["current_timestamp"] = current_timestamp
+    logger.info(f"Current timestamp: {current_timestamp}")
+
+    runs_dir = (
+            PROJ_ROOT
+            / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
+    )
+    search["project"] = runs_dir
+
+    experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
+    search["experiment_dir"] = experiment_dir
+
+    logger.info(f"Using experiment directory: {experiment_dir}")
+
+    search["data"] = os.path.abspath(search["data"])
+
+    return search
+
+
+def save_best_configuration(search: dict[str, Any], best_config: dict[str, Any]) -> None:
+    output_path = search["experiment_dir"] / f"best_config_{search["model"][:-3]}.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    write_to_json(output_path, [best_config])
+    logger.info(f"Saved best config to {output_path}")
+
+
 @app.command()
 def main(path_to_hyperparameters_search_config: Path):
     searches = read_from_json(path_to_hyperparameters_search_config)
 
     for search in searches:
-        current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        logger.info(f"Current timestamp: {current_timestamp}")
-
-        runs_dir = (
-            PROJ_ROOT
-            / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
-        )
-        search["project"] = runs_dir
-
-        experiment_dir = RESULTS_DIRECTORY / f"{current_timestamp}"
-        search["experiment_dir"] = experiment_dir
-
-        logger.info(f"Using experiment directory: {experiment_dir}")
+        search = prepare_search_paths(search)
 
         best_config = get_best_config(search)
         logger.info(f"Found best configuration: {best_config}")
 
-        output_path = search["experiment_dir"] / f"best_config_{search["model"][:-3]}.json"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        write_to_json(output_path, [best_config])
-        logger.info(f"Saved best config to {output_path}")
+        save_best_configuration(search, best_config)
 
 
 if __name__ == "__main__":

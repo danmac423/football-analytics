@@ -1,13 +1,14 @@
+import os
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import typer
 from loguru import logger
 from ultralytics import YOLO
 
 from ai.config import RUNS_DIR
-from ai.config_io import read_from_json
-
+from ai.config_io import read_from_json, remove_label_zero, remove_ball_label_from_data_yaml, copy_directory
 
 app = typer.Typer()
 
@@ -22,6 +23,30 @@ def train(config: dict):
     model.train(**config)
 
 
+def do_remove_ball_label(config: dict[str, Any], current_timestamp: str) -> dict[str, Any]:
+    dataset_directory = config["data"]
+
+    if os.path.isfile(dataset_directory):
+        data_file = os.path.basename(dataset_directory)
+        dataset_directory = os.path.dirname(dataset_directory)
+        add_data_file = True
+    else:
+        add_data_file = False
+
+    dataset_copy = dataset_directory + f"-copy-{current_timestamp}"
+
+    if add_data_file:
+        config["data"] = dataset_copy + f"/{data_file}"
+
+    copy_directory(dataset_directory, dataset_copy)
+
+    logger.info("Removing ball label")
+    remove_ball_label_from_data_yaml(config["data"])
+    remove_label_zero(config["data"])
+
+    return config
+
+
 @app.command()
 def main(training_config_path: Path):
     logger.info(f"Reading configuration from {training_config_path}")
@@ -30,22 +55,18 @@ def main(training_config_path: Path):
         current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         logger.info(f"Current timestamp: {current_timestamp}")
 
+        config["data"] = os.path.abspath(config["data"])
+
         if "project" not in config.keys():
             config["project"] = RUNS_DIR / f"{config["model"][:-3]}" / f"train_{current_timestamp}"
 
         logger.info(f"Saving training run to: {config['project']}")
 
-        if "additional_dataset" in config.keys():
-            additional_dataset = config.pop("additional_dataset")
+        if "remove_ball_label" in config.keys():
+            config = do_remove_ball_label(config, current_timestamp)
+            config.pop("remove_ball_label")
 
-            train(config)
-
-            config["data"] = additional_dataset
-            config["model"] = config["project"] / "train" / "weights" / "best.pt"
-
-            train(config)
-        else:
-            train(config)
+        train(config)
 
 
 if __name__ == "__main__":
