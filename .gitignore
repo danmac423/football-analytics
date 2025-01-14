@@ -1,6 +1,6 @@
 models/*
 .vscode/*
-
+# logs/*
 # Data
 /data/
 
