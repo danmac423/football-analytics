@@ -95,20 +95,6 @@ class YOLOPlayerInferenceServiceServicer(
                             tracker_id=tracker_id,
                         )
                     )
-
-                # for box in results.boxes:
-                #     coordinates = box.xyxyn.cpu().numpy().flatten()
-                #     x1_n, y1_n, x2_n, y2_n = coordinates[:4]
-                #     boxes.append(
-                #         player_inference_pb2.BoundingBox(
-                #             x1_n=x1_n,
-                #             y1_n=y1_n,
-                #             x2_n=x2_n,
-                #             y2_n=y2_n,
-                #             confidence=box.conf.item(),
-                #             class_label=labels[int(box.cls.item())],
-                #         )
-                # )
                 logger.info(f"Frame ID {frame.frame_id} processed with {len(boxes)} detections.")
 
                 yield player_inference_pb2.PlayerInferenceResponse(
