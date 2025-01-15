@@ -5,6 +5,7 @@ import signal
 import threading
 from concurrent import futures
 from queue import Empty
+from time import time
 from typing import Any, Callable, Generator, Iterator
 
 import cv2
@@ -82,6 +83,8 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         self.threads = {}
         self.stop_event = threading.Event()
 
+        self.previous_positions = {}
+
         logger.info("Inference Manager Service initialized successfully.")
 
     def close_connections(self):
@@ -144,6 +147,18 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             )
             return None
 
+    def _calculate_velocity(self, player_id, current_position, current_time):
+        if player_id in self.previous_positions:
+            prev_position, prev_time = self.previous_positions[player_id]
+            distance = np.sqrt((current_position[0] - prev_position[0]) ** 2 +
+                            (current_position[1] - prev_position[1]) ** 2)
+            delta_time = current_time - prev_time
+            velocity = distance / delta_time if delta_time > 0 else 0
+        else:
+            velocity = 0
+        self.previous_positions[player_id] = (current_position, current_time)
+        return velocity
+
     def _annotate_frame(
         self,
         frame_ndarray: np.ndarray,
@@ -155,10 +170,34 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         Annotates a frame with player, ball, and keypoints data if available.
         """
         annotated_frame = frame_ndarray
+        current_time = time()
+
         try:
             if player_response is not None:
                 detections = to_supervision(player_response, frame_ndarray)
-                annotated_frame = ELLIPSE_ANNOTATOR.annotate(annotated_frame, detections)
+                # annotated_frame = ELLIPSE_ANNOTATOR.annotate(annotated_frame, detections)
+                for i, detection in enumerate(detections.xyxy):
+                    player_id = int(detections.class_id[i])
+                    # position = detection[:2]  # Środek boxa
+                    position = (
+                        (detection[0] + detection[2]) / 2,  # x1 + x2 / 2
+                        (detection[1] + detection[3]) / 2,  # y1 + y2 / 2
+                    )
+                    velocity = self._calculate_velocity(player_id, position, current_time)
+                    annotated_frame = ELLIPSE_ANNOTATOR.annotate(annotated_frame, detections)
+
+                    # Dodaj prędkość jako etykietę
+                    velocity_text = f"{velocity:.2f} m/s"
+                    position = (int(detection[0]), int(detection[1]))  # Współrzędne x, y
+                    cv2.putText(
+                        annotated_frame,
+                        velocity_text,
+                        position,
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (255, 255, 255),
+                        1,
+                    )
         except Exception as e:
             logger.error(f"Error annotating players: {e}")
 
