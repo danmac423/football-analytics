@@ -13,6 +13,7 @@ import grpc
 import numpy as np
 import supervision as sv
 
+from football_analytics.annotations.radar import generate_radar
 from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
 from services.config import (
@@ -169,7 +170,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         """
         Annotates a frame with player, ball, and keypoints data if available.
         """
-        annotated_frame = frame_ndarray
+        annotated_frame = frame_ndarray.copy()
         current_time = time()
 
         try:
@@ -216,6 +217,39 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             logger.error(f"Error annotating keypoints: {e}")
 
         return annotated_frame
+
+    def _generate_radar(
+            self,
+            frame: np.ndarray,
+            player_response: player_inference_pb2.PlayerInferenceResponse,
+            ball_response: ball_inference_pb2.BallInferenceResponse,
+            keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse
+        ) -> np.ndarray:
+
+        if not keypoints_response or not keypoints_response.keypoints:
+            return frame
+
+        if not player_response:
+            player_detections = sv.Detections(
+                xyxy = np.empty((0, 4)),
+            )
+        else:
+            player_detections = to_supervision(player_response, frame)
+
+        if not ball_response:
+            ball_detections = sv.Detections(
+                xyxy = np.empty((0, 4))
+            )
+        else:
+            ball_detections = to_supervision(ball_response, frame)
+
+        return generate_radar(
+            frame,
+            player_detections,
+            ball_detections,
+            to_supervision(keypoints_response, frame)
+        )
+
 
     def ProcessFrames(
         self, request_iterator: Iterator[ball_inference_pb2.Frame], context: grpc.ServicerContext
@@ -292,6 +326,13 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 frame_ndarray, player_response, ball_response, keypoints_response
             )
 
+            annotated_frame = self._generate_radar(
+                annotated_frame,
+                player_response,
+                ball_response,
+                keypoints_response
+            )
+
             _, frame_bytes = self._safe_execute(lambda: cv2.imencode(".jpg", annotated_frame))
             if frame_bytes is None:
                 logger.error(f"Failed to encode frame ID {frame.frame_id}. Skipping.")
@@ -317,7 +358,7 @@ def shutdown_server(server, servicer: InferenceManagerServiceServicer):
 
     servicer.stop_event.set()
     servicer.close_connections()
-    
+
     for thread_name, thread in servicer.threads.items():
         logger.info(f"Waiting for thread {thread_name} to finish...")
         thread.join()

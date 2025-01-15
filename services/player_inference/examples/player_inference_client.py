@@ -42,12 +42,13 @@ def run_client(video_path, output_path):
             y2 = int(box.y2_n * height)
             confidence = box.confidence
             label = box.class_label
+            tracker_id = box.tracker_id
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
             cv2.putText(
                 frame,
-                f"{label} ({confidence:.2f})",
+                f"{label} ({confidence:.2f}) {tracker_id}",
                 (x1, y1 - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
@@ -72,4 +73,4 @@ def run_client(video_path, output_path):
 
 
 if __name__ == "__main__":
-    run_client("data/input/test_video.mp4", "data/output/player_inference.mp4")
+    run_client("data/test.mp4", "data/output/player_inference.mp4")

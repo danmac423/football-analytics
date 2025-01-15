@@ -23,4 +23,5 @@ message BoundingBox {
   float y2_n = 4;
   float confidence = 5;
   string class_label = 6;
+  int32 tracker_id = 7;
 }

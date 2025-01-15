@@ -8,10 +8,11 @@ from services.player_inference.grpc_files import player_inference_pb2
 
 
 @multimethod
-def to_supervision(ball_response: ball_inference_pb2.BallInferenceResponse, frame_ndarray: np.ndarray) -> sv.Detections:
+def to_supervision(
+    ball_response: ball_inference_pb2.BallInferenceResponse, frame_ndarray: np.ndarray
+) -> sv.Detections:
     ball_boxes = ball_response.boxes
     height, width, _ = frame_ndarray.shape
-
 
     xyxy = []
     confidences = []
@@ -28,9 +29,9 @@ def to_supervision(ball_response: ball_inference_pb2.BallInferenceResponse, fram
             confidences.append(box.confidence)
             class_ids.append(0)
 
-        xyxy_array = np.array(xyxy, dtype=np.float32)
-        confidence_array = np.array(confidences, dtype=np.float32)
-        class_id_array = np.array(class_ids, dtype=object)
+        xyxy_array = np.array(xyxy, dtype=np.float32) if xyxy else np.empty((0, 4))
+        confidence_array = np.array(confidences, dtype=np.float32) if confidences else None
+        class_id_array = np.array(class_ids, dtype=object) if class_ids else None
 
         detections = sv.Detections(
             xyxy=xyxy_array, confidence=confidence_array, class_id=class_id_array
@@ -49,18 +50,16 @@ def to_supervision(ball_response: ball_inference_pb2.BallInferenceResponse, fram
         raise
 
 
-
-
 @multimethod
 def to_supervision(
     keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
-    frame_ndarray: np.ndarray
+    frame_ndarray: np.ndarray,
 ) -> sv.KeyPoints:
     pitch_keypoints = keypoints_response.keypoints
-    height, width, _ = frame_ndarray.shape # Can be used to annotate pitch box
-
+    height, width, _ = frame_ndarray.shape  # Can be used to annotate pitch box
 
     kp_xy = []
+    kp_conf = []
     try:
         for kp in pitch_keypoints:
             kp_x = int(kp.x)
@@ -68,10 +67,16 @@ def to_supervision(
             confidence = kp.confidence
 
             kp_xy.append([(kp_x, kp_y)])
+            kp_conf.append(confidence)
 
-        kp_xy_array = np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
+        kp_xy_array = (
+            np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
+            if kp_xy
+            else np.empty((0, 0, 2))
+        )
+        kp_conf_array = np.array(kp_conf, dtype=np.float32).reshape(1, -1) if kp_conf else None
 
-        keypoints = sv.KeyPoints(xy=kp_xy_array)
+        keypoints = sv.KeyPoints(xy=kp_xy_array, confidence=kp_conf_array)
 
         return keypoints
 
@@ -86,11 +91,9 @@ def to_supervision(
         raise
 
 
-
 @multimethod
 def to_supervision(
-    player_response: player_inference_pb2.PlayerInferenceResponse,
-    frame_ndarray: np.ndarray
+    player_response: player_inference_pb2.PlayerInferenceResponse, frame_ndarray: np.ndarray
 ) -> sv.Detections:
     height, width, _ = frame_ndarray.shape
 
@@ -99,6 +102,7 @@ def to_supervision(
     xyxy = []
     confidences = []
     class_ids = []
+    tracker_ids = []
 
     class_ids_map = {"goalkeeper": 0, "player": 1, "referee": 2}
 
@@ -112,13 +116,25 @@ def to_supervision(
             xyxy.append([x1, y1, x2, y2])
             confidences.append(box.confidence)
             class_ids.append(class_ids_map[box.class_label])
+            tracker_ids.append(box.tracker_id)
 
-        xyxy_array = np.array(xyxy, dtype=np.float32)
-        confidence_array = np.array(confidences, dtype=np.float32)
-        class_id_array = np.array(class_ids, dtype=object)
+        xyxy_array = (
+            np.array(
+                xyxy,
+                dtype=np.float32,
+            )
+            if xyxy
+            else np.empty((0, 4))
+        )
+        confidence_array = np.array(confidences, dtype=np.float32) if confidences else None
+        class_id_array = np.array(class_ids, dtype=object) if class_ids else None
+        tracker_id_array = np.array(tracker_ids, dtype=np.int32) if tracker_ids else None
 
         detections = sv.Detections(
-            xyxy=xyxy_array, confidence=confidence_array, class_id=class_id_array
+            xyxy=xyxy_array,
+            confidence=confidence_array,
+            class_id=class_id_array,
+            tracker_id=tracker_id_array,
         )
 
         return detections
