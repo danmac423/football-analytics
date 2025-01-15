@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17inference_manager.proto\x12\x11inference_manager\"*\n\x05\x46rame\x12\x10\n\x08\x66rame_id\x18\x01 \x01(\x05\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\x0c\x32\x62\n\x17InferenceManagerService\x12G\n\rProcessFrames\x12\x18.inference_manager.Frame\x1a\x18.inference_manager.Frame(\x01\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17inference_manager.proto\x12\x11inference_manager\"7\n\x05\x46rame\x12\x10\n\x08\x66rame_id\x18\x01 \x01(\x05\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\x0c\x12\x0b\n\x03\x66ps\x18\x03 \x01(\x02\x32\x62\n\x17InferenceManagerService\x12G\n\rProcessFrames\x12\x18.inference_manager.Frame\x1a\x18.inference_manager.Frame(\x01\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,7 +32,7 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'inference_manager_pb2', _gl
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_FRAME']._serialized_start=46
-  _globals['_FRAME']._serialized_end=88
-  _globals['_INFERENCEMANAGERSERVICE']._serialized_start=90
-  _globals['_INFERENCEMANAGERSERVICE']._serialized_end=188
+  _globals['_FRAME']._serialized_end=101
+  _globals['_INFERENCEMANAGERSERVICE']._serialized_start=103
+  _globals['_INFERENCEMANAGERSERVICE']._serialized_end=201
 # @@protoc_insertion_point(module_scope)

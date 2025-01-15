@@ -5,7 +5,6 @@ import signal
 import threading
 from concurrent import futures
 from queue import Empty
-from time import time
 from typing import Any, Callable, Generator, Iterator
 
 import cv2
@@ -188,7 +187,8 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
     def _calculate_velocity(
             self,
             player_id: int,
-            current_position: tuple[float, float]
+            current_position: tuple[float, float],
+            delta_time: float
         ) -> float:
 
         real_position = self.view_transformer.transform_points(np.array([current_position]))[0]
@@ -203,7 +203,6 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             distance = np.sqrt((real_position[0] - prev_real_position[0]) ** 2 +
                            (real_position[1] - prev_real_position[1]) ** 2)
 
-            delta_time = 1/25
             velocity = (distance / 100.0) / delta_time if delta_time > 0 else 0
         else:
             velocity = 0
@@ -217,12 +216,12 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         player_response: player_inference_pb2.PlayerInferenceResponse,
         ball_response: ball_inference_pb2.BallInferenceResponse,
         keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
+        delta_time: float,
     ) -> np.ndarray:
         """
         Annotates a frame with player, ball, and keypoints data if available.
         """
         annotated_frame = frame_ndarray.copy()
-        current_time = time()
 
         try:
             if player_response is not None:
@@ -234,7 +233,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                         (detection[0] + detection[2]) / 2,  # x1 + x2 / 2
                         (detection[1] + detection[3]) / 2,  # y1 + y2 / 2
                     )
-                    velocity = self._calculate_velocity(tracker_id, position)
+                    velocity = self._calculate_velocity(tracker_id, position, delta_time)
                     annotated_frame = ELLIPSE_ANNOTATOR.annotate(annotated_frame, detections)
 
                     velocity_text = f"{velocity:.2f} m/s"
@@ -312,6 +311,9 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             logger.error(f"Faied to read request_iterator: {e}", exc_info=True)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Invalid input frames.")
 
+        fps = request_list[0].fps
+        delta_time = 1 / fps
+
         player_queue, ball_queue, keypoints_queue = queue.Queue(), queue.Queue(), queue.Queue()
 
         self.threads = {
@@ -375,7 +377,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 self._initialize_view_transformer(frame_ndarray, keypoints_response)
 
             annotated_frame = self._annotate_frame(
-                frame_ndarray, player_response, ball_response, keypoints_response
+                frame_ndarray, player_response, ball_response, keypoints_response, delta_time
             )
 
             annotated_frame = self._generate_radar(
