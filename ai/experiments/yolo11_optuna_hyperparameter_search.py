@@ -1,21 +1,19 @@
+import json
 import os
 import time
 from datetime import datetime
-
-import optuna
-import json
-import typer
-
-from optuna import Trial
 from pathlib import Path
-from loguru import logger
 from typing import Any
 
-from ai.config import PROJ_ROOT
-from ai.config_io import write_to_json, read_from_json
-from ai.modeling.train import train, do_remove_ball_label
-from ai.modeling.validate import validate
+import optuna
+import typer
+from loguru import logger
+from optuna import Trial
 
+from ai.config import PROJ_ROOT
+from ai.config_io import read_from_json, write_to_json
+from ai.modeling.train import do_remove_ball_label, train
+from ai.modeling.validate import validate
 
 RESULTS_DIRECTORY = PROJ_ROOT / "ai/experiments/results/yolo11_optuna_hyperparameter_search"
 

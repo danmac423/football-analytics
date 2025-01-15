@@ -12,6 +12,12 @@ import grpc
 import numpy as np
 import supervision as sv
 
+from config import (
+    BALL_INFERENCE_SERVICE_ADDRESS,
+    INFERENCE_MANAGER_SERVICE_ADDRESS,
+    KEYPOINTS_DETECTION_SERVICE_ADDRESS,
+    PLAYER_INFERENCE_SERVICE_ADDRESS,
+)
 from football_analytics.annotations.radar import generate_radar
 from football_analytics.football_pitch.football_pitch_configuration import (
     FootballPitchConfiguration,
@@ -19,12 +25,6 @@ from football_analytics.football_pitch.football_pitch_configuration import (
 from football_analytics.football_pitch.view_transformer import ViewTransformer
 from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
-from config import (
-    BALL_INFERENCE_SERVICE_ADDRESS,
-    INFERENCE_MANAGER_SERVICE_ADDRESS,
-    KEYPOINTS_DETECTION_SERVICE_ADDRESS,
-    PLAYER_INFERENCE_SERVICE_ADDRESS,
-)
 from services.inference_manager.grpc_files import inference_manager_pb2, inference_manager_pb2_grpc
 from services.keypoints_detection.grpc_files import (
     keypoints_detection_pb2,
