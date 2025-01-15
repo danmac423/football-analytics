@@ -7,7 +7,7 @@ from PIL import Image
 from requests import post
 
 from football_analytics.utils.utils import list_to_nparray_in_dict
-from services.config import PITCH_KEYPOINTS_SERVICE_URL, TRACKER_SERVICE_URL
+from config import PITCH_KEYPOINTS_SERVICE_URL, TRACKER_SERVICE_URL
 
 # CUSTOM_PALLETE = sv.ColorPalette(
 #     {

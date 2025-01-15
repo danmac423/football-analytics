@@ -11,6 +11,7 @@ import numpy as np
 from config import BALL_INFERENCE_SERVICE_ADDRESS
 from football_analytics.ball_inference.yolo_ball_inferer import YOLOBallInferer
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
+from config import BALL_INFERENCE_MODEL_PATH, BALL_INFERENCE_SERVICE_ADDRESS, DEVICE
 
 os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 

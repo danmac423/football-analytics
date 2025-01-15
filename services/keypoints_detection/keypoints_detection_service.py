@@ -6,6 +6,7 @@ from typing import Any, Generator, Iterator
 
 import grpc
 
+
 from config import KEYPOINTS_DETECTION_SERVICE_ADDRESS
 from football_analytics.keypoint_detection.yolo_keypoints_detector import YOLOKeypointsDetector
 from services.keypoints_detection.grpc_files import (
