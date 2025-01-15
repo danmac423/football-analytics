@@ -1,12 +1,14 @@
 import logging
 import os
 import signal
+from collections import deque
 from concurrent import futures
 from typing import Any, Generator, Iterator
 
 import cv2
 import grpc
 import numpy as np
+import supervision as sv
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
@@ -21,6 +23,23 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(), logging.FileHandler("logs/ball_inference_service.log")],
 )
 logger = logging.getLogger(__name__)
+
+
+class BallTracker:
+    def __init__(self, buffer_size: int = 10):
+        self.buffer = deque(maxlen=buffer_size)
+
+    def update(self, detections: sv.Detections) -> sv.Detections:
+        xy = detections.get_anchors_coordinates(sv.Position.CENTER)
+        self.buffer.append(xy)
+
+        if len(detections) == 0:
+            return detections
+
+        centroid = np.mean(np.concatenate(self.buffer), axis=0)
+        distances = np.linalg.norm(xy - centroid, axis=1)
+        index = np.argmin(distances)
+        return detections[[index]]
 
 
 class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInferenceServiceServicer):
@@ -49,32 +68,58 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
         Yields:
             The BallInferenceResponse for each frame.
         """
+        tracker = BallTracker()
+
         for frame in request_iterator:
             try:
                 frame_image = cv2.imdecode(
                     np.frombuffer(frame.content, np.uint8), cv2.IMREAD_COLOR
                 )
+                height, width, _ = frame_image.shape
 
-                result: Results = self.model.predict(frame_image)[0]
-                labels = result.names
+                def callback(patch: np.ndarray) -> sv.Detections:
+                    result = self.model(patch, conf=0.3)[0]
+                    return sv.Detections.from_ultralytics(result)
+
+                slicer = sv.InferenceSlicer(
+                    callback=callback,
+                    overlap_filter=sv.OverlapFilter.NON_MAX_SUPPRESSION,
+                    slice_wh=(width // 2 + 100, height // 2 + 100),
+                    overlap_ratio_wh=None,
+                    overlap_wh=(100, 100),
+                    iou_threshold=0.1,
+                )
+
+                results: Results = self.model(frame_image)[0]
+                detections = sv.Detections.from_ultralytics(results)
+
+                detections = slicer(frame_image)
+                detections = tracker.update(detections)
 
                 boxes = []
 
-                for box in result.boxes:
-                    xyxyn = box.xyxyn.cpu().flatten()
+                for box, conf in zip(
+                    detections.xyxy,
+                    detections.confidence,
+                ):
+                    x1, y1, x2, y2 = box[:4]
+                    x1_n = x1 / width
+                    y1_n = y1 / height
+                    x2_n = x2 / width
+                    y2_n = y2 / height
 
                     boxes.append(
                         ball_inference_pb2.BoundingBox(
-                            x1_n=xyxyn[0].item(),
-                            y1_n=xyxyn[1].item(),
-                            x2_n=xyxyn[2].item(),
-                            y2_n=xyxyn[3].item(),
-                            confidence=box.conf.item(),
-                            class_label=labels[int(box.cls.item())],
+                            x1_n=x1_n,
+                            y1_n=y1_n,
+                            x2_n=x2_n,
+                            y2_n=y2_n,
+                            confidence=conf,
+                            class_label="ball",
                         )
                     )
-
                 logger.info(f"Frame ID {frame.frame_id} processed with {len(boxes)} detections.")
+
                 yield ball_inference_pb2.BallInferenceResponse(
                     frame_id=frame.frame_id, boxes=boxes
                 )
