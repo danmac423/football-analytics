@@ -19,7 +19,7 @@ from football_analytics.football_pitch.football_pitch_configuration import (
 from football_analytics.football_pitch.view_transformer import ViewTransformer
 from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
-from services.config import (
+from config import (
     BALL_INFERENCE_SERVICE_ADDRESS,
     INFERENCE_MANAGER_SERVICE_ADDRESS,
     KEYPOINTS_DETECTION_SERVICE_ADDRESS,

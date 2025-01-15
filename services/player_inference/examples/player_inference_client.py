@@ -1,7 +1,7 @@
 import cv2
 import grpc
 
-from services.config import PLAYER_INFERENCE_SERVICE_ADDRESS
+from config import PLAYER_INFERENCE_SERVICE_ADDRESS
 from services.player_inference.grpc_files import player_inference_pb2, player_inference_pb2_grpc
 
 
