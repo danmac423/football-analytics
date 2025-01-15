@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 from concurrent import futures
 from typing import Any, Generator, Iterator
 
@@ -82,6 +83,15 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
                 context.abort(grpc.StatusCode.UNKNOWN, str(e))
 
 
+def shutdown_server(server, servicer):
+    """
+    Gracefully shuts down the server and logs shutdown events.
+    """
+    logger.info("Shutting down server...")
+    server.stop(grace=1)
+    logger.info("Server shut down gracefully.")
+
+
 def serve():
     """
     Function that starts the gRPC server.
@@ -94,6 +104,13 @@ def serve():
     ball_inference_pb2_grpc.add_YOLOBallInferenceServiceServicer_to_server(servicer, server)
 
     server.add_insecure_port(BALL_INFERENCE_SERVICE_ADDRESS)
+
+    def handle_signal(signal_num, frame):
+        logger.info(f"Received signal {signal_num}. Initiating shutdown...")
+        shutdown_server(server, servicer)
+
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
     logger.info(f"Server started on {BALL_INFERENCE_SERVICE_ADDRESS}.")
     server.start()
     server.wait_for_termination()
