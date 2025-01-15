@@ -9,6 +9,7 @@ from services.inference_manager.grpc_files import inference_manager_pb2, inferen
 def frame_generator(video_path: str):
     cap = cv2.VideoCapture(video_path)
 
+    fps = cap.get(cv2.CAP_PROP_FPS)
     frame_id = 0
     while cap.isOpened():
         ret, frame = cap.read()
@@ -16,7 +17,7 @@ def frame_generator(video_path: str):
             break
 
         _, buffer = cv2.imencode(".jpg", frame)
-        yield inference_manager_pb2.Frame(frame_id=frame_id, content=buffer.tobytes())
+        yield inference_manager_pb2.Frame(frame_id=frame_id, content=buffer.tobytes(), fps=fps)
 
         frame_id += 1
 
@@ -45,5 +46,5 @@ def run_client(video_path: str):
 
 
 if __name__ == "__main__":
-    video_path = "data/test.mp4"
+    video_path = "data/input/test_video.mp4"
     run_client(video_path)
