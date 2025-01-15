@@ -24,13 +24,8 @@ class YOLOPlayerInferer:
     """Class responsible for tracking players using YOLO."""
 
     def __init__(self):
-        logger.info("Initializing YOLO model...")
-        self.model = YOLO(PLAYER_INFERENCE_MODEL_PATH).to(DEVICE)
-        self.tracker = sv.ByteTrack(
-            lost_track_buffer=100,
-            minimum_consecutive_frames=3,
-        )
-        logger.info(f"YOLO model loaded from {PLAYER_INFERENCE_MODEL_PATH} on device {DEVICE}.")
+        self.model = self._load_model()
+        self.tracker = self._initialize_tracker()
 
     def _load_model(self) -> YOLO:
         """Loads the YOLO model.
@@ -39,8 +34,8 @@ class YOLOPlayerInferer:
             YOLO: The loaded YOLO model.
         """
         logger.info("Initializing YOLO model...")
-        model = YOLO(self.model_path).to(self.device)
-        logger.info(f"YOLO model loaded from {self.model_path} on device {self.device}.")
+        model = YOLO(PLAYER_INFERENCE_MODEL_PATH).to(DEVICE)
+        logger.info(f"YOLO model loaded from {PLAYER_INFERENCE_MODEL_PATH} on device {DEVICE}.")
         return model
 
     def _initialize_tracker(self) -> sv.ByteTrack:
