@@ -179,6 +179,39 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
 
         return annotated_frame
 
+    def _generate_radar(
+            self,
+            frame: np.ndarray,
+            player_response: player_inference_pb2.PlayerInferenceResponse,
+            ball_response: ball_inference_pb2.BallInferenceResponse,
+            keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse
+        ) -> np.ndarray:
+
+        if not keypoints_response or not keypoints_response.keypoints:
+            return frame
+
+        if not player_response:
+            player_detections = sv.Detections(
+                xyxy = np.empty((0, 4)),
+            )
+        else:
+            player_detections = to_supervision(player_response, frame)
+
+        if not ball_response:
+            ball_detections = sv.Detections(
+                xyxy = np.empty((0, 4))
+            )
+        else:
+            ball_detections = to_supervision(ball_response, frame)
+
+        return generate_radar(
+            frame,
+            player_detections,
+            ball_detections,
+            to_supervision(keypoints_response, frame)
+        )
+
+
     def ProcessFrames(
         self, request_iterator: Iterator[ball_inference_pb2.Frame], context: grpc.ServicerContext
     ) -> Generator[inference_manager_pb2.Frame, Any, Any]:
@@ -254,12 +287,12 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 frame_ndarray, player_response, ball_response, keypoints_response
             )
 
-            # annotated_frame = generate_radar(
-            #     annotated_frame,
-            #     to_supervision(player_response, frame_ndarray),
-            #     to_supervision(ball_response, frame_ndarray),
-            #     to_supervision(keypoints_response, frame_ndarray)
-            # )
+            annotated_frame = self._generate_radar(
+                annotated_frame,
+                player_response,
+                ball_response,
+                keypoints_response
+            )
 
             _, frame_bytes = self._safe_execute(lambda: cv2.imencode(".jpg", annotated_frame))
             if frame_bytes is None:

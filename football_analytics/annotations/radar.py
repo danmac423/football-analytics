@@ -17,7 +17,7 @@ REFEREE_ID = 2
 
 def generate_radar(
         frame: np.ndarray,
-        detections: sv.Detections,
+        people_detections: sv.Detections,
         ball_detections: sv.Detections,
         keypoints_detections: sv.KeyPoints,
 
@@ -28,9 +28,20 @@ def generate_radar(
 
     ball_detections.xyxy = sv.pad_boxes(xyxy=ball_detections.xyxy, px=10)
 
-    players_detections = detections[detections.class_id == PLAYER_ID]
-    goalkeepers_detections = detections[detections.class_id == GOALKEEPER_ID]
-    referees_detections = detections[detections.class_id == REFEREE_ID]
+    if people_detections.class_id is not None:
+        players_detections = people_detections[people_detections.class_id == PLAYER_ID]
+        goalkeepers_detections = people_detections[people_detections.class_id == GOALKEEPER_ID]
+        referees_detections = people_detections[people_detections.class_id == REFEREE_ID]
+    else:
+        players_detections = sv.Detections(
+            xyxy=np.empty((0, 4))
+        )
+        goalkeepers_detections = sv.Detections(
+            xyxy=np.empty((0, 4))
+        )
+        referees_detections = sv.Detections(
+            xyxy=np.empty((0, 4))
+        )
 
     filter = keypoints_detections.confidence[0] > 0.5
     frame_reference_points = keypoints_detections.xy[0][filter]

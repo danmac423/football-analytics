@@ -11,13 +11,6 @@ from services.player_inference.grpc_files import player_inference_pb2
 def to_supervision(
     ball_response: ball_inference_pb2.BallInferenceResponse, frame_ndarray: np.ndarray
 ) -> sv.Detections:
-    if not ball_response or not ball_response.boxes:
-        return sv.Detections(
-            xyxy=np.zeros((0, 4), dtype=np.float32),
-            confidence=np.array([], dtype=np.float32),
-            class_id=np.array([], dtype=np.int32),
-        )
-
     ball_boxes = ball_response.boxes
     height, width, _ = frame_ndarray.shape
 
@@ -76,8 +69,12 @@ def to_supervision(
             kp_xy.append([(kp_x, kp_y)])
             kp_conf.append(confidence)
 
-        kp_xy_array = np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
-        kp_conf_array = np.array(kp_conf, dtype=np.float32).reshape(1, -1)
+        kp_xy_array = (
+            np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
+            if kp_xy
+            else np.empty((0, 0, 2))
+        )
+        kp_conf_array = np.array(kp_conf, dtype=np.float32).reshape(1, -1) if kp_conf else None
 
         keypoints = sv.KeyPoints(xy=kp_xy_array, confidence=kp_conf_array)
 
