@@ -177,7 +177,6 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         except Exception as e:
             logger.error(f"Error annotating keypoints: {e}")
 
-
         return annotated_frame
 
     def ProcessFrames(
@@ -255,19 +254,17 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 frame_ndarray, player_response, ball_response, keypoints_response
             )
 
-            annotated_frame = generate_radar(
-                annotated_frame,
-                to_supervision(player_response, frame_ndarray),
-                to_supervision(ball_response, frame_ndarray),
-                to_supervision(keypoints_response, frame_ndarray)
-            )
+            # annotated_frame = generate_radar(
+            #     annotated_frame,
+            #     to_supervision(player_response, frame_ndarray),
+            #     to_supervision(ball_response, frame_ndarray),
+            #     to_supervision(keypoints_response, frame_ndarray)
+            # )
 
             _, frame_bytes = self._safe_execute(lambda: cv2.imencode(".jpg", annotated_frame))
             if frame_bytes is None:
                 logger.error(f"Failed to encode frame ID {frame.frame_id}. Skipping.")
                 continue
-
-
 
             yield inference_manager_pb2.Frame(
                 content=frame_bytes.tobytes(), frame_id=frame.frame_id
