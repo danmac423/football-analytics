@@ -155,7 +155,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         """
         Annotates a frame with player, ball, and keypoints data if available.
         """
-        annotated_frame = frame_ndarray
+        annotated_frame = frame_ndarray.copy()
         try:
             if player_response is not None:
                 detections = to_supervision(player_response, frame_ndarray)
@@ -256,7 +256,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             )
 
             annotated_frame = generate_radar(
-                frame_ndarray,
+                annotated_frame,
                 to_supervision(player_response, frame_ndarray),
                 to_supervision(ball_response, frame_ndarray),
                 to_supervision(keypoints_response, frame_ndarray)
