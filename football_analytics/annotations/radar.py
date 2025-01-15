@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import supervision as sv
 
@@ -31,11 +32,8 @@ def generate_radar(
     goalkeepers_detections = detections[detections.class_id == GOALKEEPER_ID]
     referees_detections = detections[detections.class_id == REFEREE_ID]
 
-    keypoints_detections.xy[0] = keypoints_detections.xy[0] / 640 * np.array([width, height]).T
-
     filter = keypoints_detections.confidence[0] > 0.5
     frame_reference_points = keypoints_detections.xy[0][filter]
-    frame_reference_keypoints = sv.KeyPoints(xy=frame_reference_points[np.newaxis, ...])
     pitch_reference_points = np.array(CONFIG.vertices)[filter]
 
     view_transformer = ViewTransformer(
@@ -98,4 +96,13 @@ def generate_radar(
             pitch=pitch
         )
 
-    sv.plot_image(pitch)
+    small_pitch_height = int(height * 0.2)
+    small_pitch_width = int(pitch.shape[1] * (small_pitch_height / pitch.shape[0]))
+    small_pitch = cv2.resize(pitch, (small_pitch_width, small_pitch_height))
+
+    y_offset = height - small_pitch_height
+    x_offset = (width - small_pitch_width) // 2
+    frame[y_offset:height, x_offset:x_offset + small_pitch_width] = small_pitch
+
+
+    return frame
