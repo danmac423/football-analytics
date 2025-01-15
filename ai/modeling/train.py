@@ -8,7 +8,12 @@ from loguru import logger
 from ultralytics import YOLO
 
 from ai.config import RUNS_DIR
-from ai.config_io import read_from_json, remove_label_zero, remove_ball_label_from_data_yaml, copy_directory
+from ai.config_io import (
+    copy_directory,
+    read_from_json,
+    remove_ball_label_from_data_yaml,
+    remove_label_zero,
+)
 
 app = typer.Typer()
 

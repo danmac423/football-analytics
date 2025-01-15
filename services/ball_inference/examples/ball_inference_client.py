@@ -1,8 +1,8 @@
 import cv2
 import grpc
 
-from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
 from config import BALL_INFERENCE_SERVICE_ADDRESS
+from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
 
 
 def stream_frames(video_path):

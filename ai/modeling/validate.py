@@ -1,15 +1,13 @@
 import os
+from pathlib import Path
 from typing import Any
 
 import typer
-
-from pathlib import Path
 from loguru import logger
 from ultralytics import YOLO
 from ultralytics.utils.metrics import DetMetrics
 
 from ai.config_io import read_from_json
-
 
 app = typer.Typer()
 
