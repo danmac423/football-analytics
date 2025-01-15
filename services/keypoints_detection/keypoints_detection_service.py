@@ -10,7 +10,7 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from services.config import (
+from config import (
     DEVICE,
     KEYPOINTS_DETECTION_MODEL_PATH,
     KEYPOINTS_DETECTION_SERVICE_ADDRESS,

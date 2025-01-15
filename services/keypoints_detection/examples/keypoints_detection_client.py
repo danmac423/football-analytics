@@ -2,7 +2,7 @@ import cv2
 import grpc
 
 import services.keypoints_detection.grpc_files.keypoints_detection_pb2 as keypoints_detection_pb2
-from services.config import KEYPOINTS_DETECTION_SERVICE_ADDRESS
+from config import KEYPOINTS_DETECTION_SERVICE_ADDRESS
 from services.keypoints_detection.grpc_files import keypoints_detection_pb2_grpc
 
 

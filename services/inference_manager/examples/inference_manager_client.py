@@ -2,7 +2,7 @@ import cv2
 import grpc
 import numpy as np
 
-from services.config import INFERENCE_MANAGER_SERVICE_ADDRESS
+from config import INFERENCE_MANAGER_SERVICE_ADDRESS
 from services.inference_manager.grpc_files import inference_manager_pb2, inference_manager_pb2_grpc
 
 
