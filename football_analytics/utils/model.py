@@ -20,6 +20,10 @@ def to_supervision(
 
     try:
         for box in ball_boxes:
+            if not (0 <= box.x1_n <= 1) or not (0 <= box.y1_n <= 1) or \
+               not (0 <= box.x2_n <= 1) or not (0 <= box.y2_n <= 1):
+                raise ValueError(f"Bounding box coordinates must be in [0, 1], got {box}")
+
             x1 = int(box.x1_n * width)
             y1 = int(box.y1_n * height)
             x2 = int(box.x2_n * width)
@@ -48,7 +52,6 @@ def to_supervision(
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         raise
-
 
 @multimethod
 def to_supervision(
@@ -144,6 +147,9 @@ def to_supervision(
         raise
     except AttributeError as ae:
         print(f"AttributeError occurred: {ae}")
+        raise
+    except KeyError as ke:
+        print(f"KeyError occured: {ke}")
         raise
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
