@@ -12,6 +12,7 @@ import grpc
 import numpy as np
 import supervision as sv
 
+from football_analytics.annotations.radar import generate_radar
 from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
 from services.config import (
@@ -154,7 +155,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         """
         Annotates a frame with player, ball, and keypoints data if available.
         """
-        annotated_frame = frame_ndarray
+        annotated_frame = frame_ndarray.copy()
         try:
             if player_response is not None:
                 detections = to_supervision(player_response, frame_ndarray)
@@ -175,6 +176,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 annotated_frame = VERTEX_ANNOTATOR.annotate(annotated_frame, keypoints)
         except Exception as e:
             logger.error(f"Error annotating keypoints: {e}")
+
 
         return annotated_frame
 
@@ -253,10 +255,19 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 frame_ndarray, player_response, ball_response, keypoints_response
             )
 
+            annotated_frame = generate_radar(
+                annotated_frame,
+                to_supervision(player_response, frame_ndarray),
+                to_supervision(ball_response, frame_ndarray),
+                to_supervision(keypoints_response, frame_ndarray)
+            )
+
             _, frame_bytes = self._safe_execute(lambda: cv2.imencode(".jpg", annotated_frame))
             if frame_bytes is None:
                 logger.error(f"Failed to encode frame ID {frame.frame_id}. Skipping.")
                 continue
+
+
 
             yield inference_manager_pb2.Frame(
                 content=frame_bytes.tobytes(), frame_id=frame.frame_id
@@ -278,7 +289,7 @@ def shutdown_server(server, servicer: InferenceManagerServiceServicer):
 
     servicer.stop_event.set()
     servicer.close_connections()
-    
+
     for thread_name, thread in servicer.threads.items():
         logger.info(f"Waiting for thread {thread_name} to finish...")
         thread.join()
