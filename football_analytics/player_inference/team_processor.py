@@ -1,0 +1,97 @@
+import logging
+
+import cv2
+import numpy as np
+import supervision as sv
+import torch
+import umap
+from more_itertools import chunked
+from sklearn.cluster import KMeans
+from transformers import AutoProcessor, SiglipVisionModel
+
+from config import DEVICE, PLAYER_ID
+from football_analytics.utils.model import to_supervision
+from services.player_inference.grpc_files import player_inference_pb2
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(), logging.FileHandler("logs/player_inference_service.log")],
+)
+logger = logging.getLogger(__name__)
+
+
+class TeamAssignmentProcessor:
+    """Class responsible for assigning players to teams."""
+
+    def __init__(
+        self, embedding_model_path: str = "google/siglip-base-patch16-224", n_clusters: int = 2
+    ):
+        logger.info("Initializing TeamAssignmentProcessor...")
+        self.embedding_model = SiglipVisionModel.from_pretrained(embedding_model_path).to(DEVICE)
+        self.embedding_processor = AutoProcessor.from_pretrained(embedding_model_path)
+        self.reducer = umap.UMAP(n_components=3)
+        self.clustering_model = KMeans(n_clusters=n_clusters)
+        logger.info("TeamAssignmentProcessor initialized.")
+
+    def extract_features(self, crops: list, batch_size: int = 32) -> np.ndarray:
+        """Extracts features from image crops using the embedding model.
+
+        Args:
+            crops (list): List of cropped player images.
+            batch_size (int): Batch size for feature extraction.
+
+        Returns:
+            np.ndarray: Extracted feature embeddings.
+        """
+        crops = [sv.cv2_to_pillow(crop) for crop in crops]
+        batches = chunked(crops, batch_size)
+        data = []
+        with torch.no_grad():
+            for batch in batches:
+                inputs = self.embedding_processor(images=batch, return_tensors="pt").to(DEVICE)
+                outputs = self.embedding_model(**inputs)
+                embeddings = torch.mean(outputs.last_hidden_state, dim=1).cpu().numpy()
+                data.append(embeddings)
+
+        return np.concatenate(data)
+
+    def fit_clustering_model(self, features: np.ndarray):
+        """Fits the clustering model using reduced feature dimensions.
+
+        Args:
+            features (np.ndarray): Extracted features.
+        """
+        projections = self.reducer.fit_transform(features)
+        self.clustering_model.fit(projections)
+
+    def predict_teams(self, features: np.ndarray) -> np.ndarray:
+        """Predicts team assignments for players based on features.
+
+        Args:
+            features (np.ndarray): Extracted features.
+
+        Returns:
+            np.ndarray: Predicted team IDs.
+        """
+        projections = self.reducer.transform(features)
+        return self.clustering_model.predict(projections)
+
+    @staticmethod
+    def collect_crops(
+        player_responses: list[player_inference_pb2.PlayerInferenceResponse], frames
+    ):
+        crops = []
+
+        for i, player_response in enumerate(player_responses):
+            frame_image = cv2.imdecode(
+                np.frombuffer(frames[i].content, np.uint8), cv2.IMREAD_COLOR
+            )
+            detections: sv.Detections = to_supervision(player_response, frame_image)
+            detections = detections.with_nms(threshold=0.5, class_agnostic=True)
+            if detections.class_id is not None:
+                detections = detections[detections.class_id == PLAYER_ID]
+                players_crops = [sv.crop_image(frame_image, xyxy) for xyxy in detections.xyxy]
+                crops += players_crops
+
+        return crops
