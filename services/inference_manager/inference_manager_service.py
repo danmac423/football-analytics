@@ -201,6 +201,12 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         client_address = context.peer()
         logger.info(f"Client connected: {client_address}")
 
+        self.queues = {
+            "ball": queue.Queue(),
+            "players": queue.Queue(),
+            "keypoints": queue.Queue(),
+        }
+
         try:
             request_list = list(request_iterator)
         except Exception as e:
