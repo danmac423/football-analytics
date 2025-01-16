@@ -42,9 +42,9 @@ def remove_label_zero(dataset_directory: str):
     if os.path.isfile(dataset_directory):
         dataset_directory = os.path.dirname(dataset_directory)
 
-    dataset_to_clear = ["test", "train", "valid"]
+    datasets_to_clear = ["test", "train", "valid"]
 
-    for dataset_to_clear in dataset_to_clear:
+    for dataset_to_clear in datasets_to_clear:
         for file_name in os.listdir(f"{dataset_directory}/{dataset_to_clear}/labels"):
             file_path = f"{dataset_directory}/{dataset_to_clear}/labels/{file_name}"
 
