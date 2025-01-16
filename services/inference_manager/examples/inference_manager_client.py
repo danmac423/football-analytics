@@ -3,7 +3,6 @@ import grpc
 import click
 import numpy as np
 from multimethod import multimethod
-from rich.progress import Progress
 
 from config import INFERENCE_MANAGER_SERVICE_ADDRESS
 from services.inference_manager.grpc_files import inference_manager_pb2, inference_manager_pb2_grpc
@@ -27,42 +26,41 @@ def frame_generator(video_path: str):
     cap.release()
 
 
-# @multimethod
-# def run_client(video_path: str):
-#     """
-#     Processes the video file interactively and displays annotated frames.
-#     """
-#     # Compute total frames for the progress bar
-#     cap = cv2.VideoCapture(video_path)
-#     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-#     cap.release()
-#
-#     with grpc.insecure_channel(INFERENCE_MANAGER_SERVICE_ADDRESS) as channel:
-#         stub = inference_manager_pb2_grpc.InferenceManagerServiceStub(channel)
-#
-#         responses = stub.ProcessFrames(frame_generator(video_path))
-#
-#         # Set up the rich progress bar
-#         with Progress() as progress:
-#             task = progress.add_task("Processing Frames", total=total_frames)
-#
-#             for response in responses:
-#                 # Decode the annotated frame
-#                 annotated_frame = cv2.imdecode(
-#                     np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR
-#                 )
-#
-#                 # Display the annotated frame
-#                 cv2.imshow("Annotated Frame", annotated_frame)
-#
-#                 # Update the progress bar dynamically
-#                 progress.update(task, advance=1)
-#
-#                 if cv2.waitKey(1) & 0xFF == ord("q"):
-#                     break
-#
-#     cv2.destroyAllWindows()
+@multimethod
+def run_client(video_path: str, output_path: str):
+    # Open video capture to get video properties
+    cap = cv2.VideoCapture(video_path)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    cap.release()
 
+    # Initialize VideoWriter to save the annotated frames
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use MP4 codec
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+    with grpc.insecure_channel(INFERENCE_MANAGER_SERVICE_ADDRESS) as channel:
+        stub = inference_manager_pb2_grpc.InferenceManagerServiceStub(channel)
+
+        responses = stub.ProcessFrames(frame_generator(video_path))
+
+        for response in responses:
+            print(f"Received annotated frame ID: {response.frame_id}")
+
+            # Decode the annotated frame
+            annotated_frame = cv2.imdecode(
+                np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR
+            )
+
+            # Save the annotated frame to the output video
+            out.write(annotated_frame)
+
+    # Release the VideoWriter
+    out.release()
+    print(f"Annotated video saved to {output_path}")
+
+
+@multimethod
 def run_client(video_path: str):
     with grpc.insecure_channel(INFERENCE_MANAGER_SERVICE_ADDRESS) as channel:
         stub = inference_manager_pb2_grpc.InferenceManagerServiceStub(channel)
@@ -84,45 +82,6 @@ def run_client(video_path: str):
     cv2.destroyAllWindows()
 
 
-# @multimethod
-# def run_client(video_path: str, output_path: str):
-#     # Open video capture to get video properties
-#     cap = cv2.VideoCapture(video_path)
-#     # total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-#     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-#     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-#     fps = cap.get(cv2.CAP_PROP_FPS)
-#     cap.release()
-#
-#     # Initialize VideoWriter to save the annotated frames
-#     fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use MP4 codec
-#     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-#
-#     with grpc.insecure_channel(INFERENCE_MANAGER_SERVICE_ADDRESS) as channel:
-#         stub = inference_manager_pb2_grpc.InferenceManagerServiceStub(channel)
-#
-#         responses = stub.ProcessFrames(frame_generator(video_path))
-#
-#         # with Progress() as progress:
-#         #     task = progress.add_task("Processing Frames", total=total_frames)
-#
-#         for response in responses:
-#             # Decode the annotated frame
-#             annotated_frame = cv2.imdecode(
-#                 np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR
-#             )
-#
-#             # Save the annotated frame to the output video
-#             out.write(annotated_frame)
-#
-#                 # Update the progress bar
-#                 # progress.update(task, advance=1)
-#
-#     # Release the VideoWriter
-#     out.release()
-#     print(f"Annotated video saved to {output_path}")
-
-
 @click.command()
 @click.option(
     "--interactive-mode",
@@ -139,8 +98,6 @@ def run_client(video_path: str):
 def main(interactive_mode, save_to_file_mode, video_path):
     """
     CLI application to process video files with the gRPC inference service.
-
-    VIDEO_PATH: Path to the mp4 video file to be processed.
     """
     if interactive_mode and save_to_file_mode:
         raise click.UsageError("You cannot use --interactive-mode and --save-to-file-mode together.")
