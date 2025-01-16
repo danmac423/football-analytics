@@ -18,8 +18,8 @@ elif torch.mps.is_available():
     DEVICE = "mps"
 
 
-BALL_COLOR = "#FF1493"
-PLAYER_COLORS = ["#00BFFF", "#FF6347", "#FFD700"]
+BALL_COLOR = "#BC0E0E"
+PLAYER_COLORS = ["#1D8097", "#C1A2E7", "#FFCD10"]
 KEYPOINTS_COLOR = "#FF1493"
 
 GOALKEEPER_ID = 0
