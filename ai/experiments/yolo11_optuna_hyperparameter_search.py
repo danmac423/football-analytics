@@ -49,16 +49,16 @@ def save_trials_to_json(
 
 def create_config(
         *,
-        model: str | None = None,
-        task: str | None = None,
-        data: str | None = None,
-        epochs: int | None = None,
-        batch: float | int | None = None,
-        imgsz: int | None = None,
-        plots: bool | None = None,
-        project: str | None = None,
-        mosaic: float | None = None,
-        remove_ball_label: bool | None = None,
+        model: Any = None,
+        task: Any = None,
+        data: Any = None,
+        epochs: Any = None,
+        batch: Any = None,
+        imgsz: Any = None,
+        plots: Any = None,
+        project: Any = None,
+        mosaic: Any = None,
+        remove_ball_label: Any = None,
 ) -> dict[str, Any]:
 
     config = {}
