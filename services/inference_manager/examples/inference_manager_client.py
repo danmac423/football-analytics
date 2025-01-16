@@ -90,12 +90,12 @@ def run_client(video_path: str):
 )
 @click.option(
     "--save-to-file-mode",
-    type=click.Path(writable=True, dir_okay=False),
-    default=None,
+    is_flag=True,
     help="Run the client in save-to-file mode and save the annotated video to the specified path."
 )
 @click.argument("video_path", type=click.Path(exists=True, dir_okay=False))
-def main(interactive_mode, save_to_file_mode, video_path):
+@click.argument("output_path", required=False, type=click.Path(writable=True, dir_okay=False))
+def main(interactive_mode, save_to_file_mode, video_path, output_path):
     """
     CLI application to process video files with the gRPC inference service.
     """
@@ -103,17 +103,20 @@ def main(interactive_mode, save_to_file_mode, video_path):
         raise click.UsageError("You cannot use --interactive-mode and --save-to-file-mode together.")
 
     if interactive_mode:
+        if output_path:
+            raise click.UsageError("Output path is not used in interactive mode.")
         click.echo("Interactive mode enabled.")
         click.echo(f"Processing video: {video_path}")
         run_client(video_path)
     elif save_to_file_mode:
+        if not output_path:
+            raise click.UsageError("Output path is required for --save-to-file-mode.")
         click.echo("Save-to-file mode enabled.")
         click.echo(f"Processing video: {video_path}")
-        click.echo(f"Saving output video to: {save_to_file_mode}")
-        run_client(video_path, save_to_file_mode)
+        click.echo(f"Saving output video to: {output_path}")
+        run_client(video_path, output_path)
     else:
         click.echo("No mode selected. Use --interactive-mode or --save-to-file-mode.")
-
 
 if __name__ == "__main__":
     main()
