@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import supervision as sv
 
+from config import PLAYER_COLORS
 from football_analytics.camera_estimation.view_transformer import ViewTransformer
 from football_analytics.football_pitch.draw_football_pitch import (
     draw_football_pitch,
@@ -23,6 +24,7 @@ def generate_radar(
     people_detections: sv.Detections,
     ball_detections: sv.Detections,
     keypoints_detections: sv.KeyPoints,
+    alpha: float = 0.7,
 ) -> np.ndarray:
     """
     Generates a radar visualization on the given frame. The radar visualization shows the football
@@ -76,6 +78,36 @@ def generate_radar(
 
     pitch = draw_football_pitch(config=CONFIG)
 
+    if pitch_players_xy.size != 0:
+        pitch = draw_points_on_pitch(
+            config=CONFIG,
+            xy=pitch_players_xy,
+            main_color=sv.Color.from_hex(PLAYER_COLORS[1]),
+            edge_color=sv.Color.BLACK,
+            radius=16,
+            pitch=pitch,
+        )
+
+    if pitch_goalkeepers_xy.size != 0:
+        pitch = draw_points_on_pitch(
+            config=CONFIG,
+            xy=pitch_goalkeepers_xy,
+            main_color=sv.Color.from_hex(PLAYER_COLORS[0]),
+            edge_color=sv.Color.BLACK,
+            radius=16,
+            pitch=pitch,
+        )
+
+    if pitch_referees_xy.size != 0:
+        pitch = draw_points_on_pitch(
+            config=CONFIG,
+            xy=pitch_referees_xy,
+            main_color=sv.Color.from_hex(PLAYER_COLORS[2]),
+            edge_color=sv.Color.BLACK,
+            radius=16,
+            pitch=pitch,
+        )
+
     if pitch_ball_xy.size != 0:
         pitch = draw_points_on_pitch(
             config=CONFIG,
@@ -86,42 +118,19 @@ def generate_radar(
             pitch=pitch,
         )
 
-    if pitch_players_xy.size != 0:
-        pitch = draw_points_on_pitch(
-            config=CONFIG,
-            xy=pitch_players_xy,
-            main_color=sv.Color.RED,
-            edge_color=sv.Color.BLACK,
-            radius=16,
-            pitch=pitch,
-        )
-
-    if pitch_goalkeepers_xy.size != 0:
-        pitch = draw_points_on_pitch(
-            config=CONFIG,
-            xy=pitch_goalkeepers_xy,
-            main_color=sv.Color.BLUE,
-            edge_color=sv.Color.BLACK,
-            radius=16,
-            pitch=pitch,
-        )
-
-    if pitch_referees_xy.size != 0:
-        pitch = draw_points_on_pitch(
-            config=CONFIG,
-            xy=pitch_referees_xy,
-            main_color=sv.Color.YELLOW,
-            edge_color=sv.Color.BLACK,
-            radius=16,
-            pitch=pitch,
-        )
-
-    small_pitch_height = int(height * 0.2)
+    small_pitch_height = int(height * 0.3)
     small_pitch_width = int(pitch.shape[1] * (small_pitch_height / pitch.shape[0]))
     small_pitch = cv2.resize(pitch, (small_pitch_width, small_pitch_height))
 
     y_offset = height - small_pitch_height
     x_offset = (width - small_pitch_width) // 2
-    frame[y_offset:height, x_offset : x_offset + small_pitch_width] = small_pitch
+
+    overlay = frame.copy()
+    overlay[y_offset:height, x_offset : x_offset + small_pitch_width] = small_pitch
+
+
+    cv2.addWeighted(
+        overlay, alpha, frame, 1 - alpha, 0, dst=frame
+    )
 
     return frame
