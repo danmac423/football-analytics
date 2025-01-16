@@ -13,10 +13,11 @@ def stream_frames(video_path):
         ret, frame = cap.read()
         if not ret:
             break
-        _, buffer = cv2.imencode('.jpg', frame)
+        _, buffer = cv2.imencode(".jpg", frame)
         yield keypoints_detection_pb2.Frame(frame_id=frame_id, content=buffer.tobytes())
         frame_id += 1
     cap.release()
+
 
 def run_client(video_path, output_path):
     channel = grpc.insecure_channel(KEYPOINTS_DETECTION_SERVICE_ADDRESS)
@@ -26,10 +27,9 @@ def run_client(video_path, output_path):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore
 
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-
 
     responses = stub.DetectKeypoints(stream_frames(video_path))
 
@@ -54,7 +54,7 @@ def run_client(video_path, output_path):
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
                 (0, 255, 0),
-                1
+                1,
             )
 
         for kp in response.keypoints:
@@ -67,12 +67,13 @@ def run_client(video_path, output_path):
         cv2.imshow("Annotated Frame", frame)
         out.write(frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
     cap.release()
     out.release()
     cv2.destroyAllWindows()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run_client("data/input/test_video.mp4", "data/output/keypoints.mp4")

@@ -1,3 +1,5 @@
+"""Module responsible for tracking players using YOLO."""
+
 import logging
 import os
 from typing import List
@@ -21,7 +23,13 @@ logger = logging.getLogger(__name__)
 
 
 class YOLOPlayerInferer:
-    """Class responsible for tracking players using YOLO."""
+    """
+    Class to perform player inference using YOLO.
+
+    Attributes:
+        model (YOLO): The YOLO model.
+        tracker (sv.ByteTrack): The tracker to track players.
+    """
 
     def __init__(self):
         self.model = self._load_model()
@@ -87,9 +95,9 @@ class YOLOPlayerInferer:
 
         for box, conf, cls, tracker_id in zip(
             detections.xyxy,
-            detections.confidence,
-            detections.class_id,
-            detections.tracker_id,
+            detections.confidence,  # type: ignore
+            detections.class_id,  # type: ignore
+            detections.tracker_id,  # type: ignore
         ):
             x1_n, y1_n, x2_n, y2_n = self._normalize_box(box, width, height)
 

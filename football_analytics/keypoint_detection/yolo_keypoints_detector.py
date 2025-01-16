@@ -1,3 +1,5 @@
+"""Module for the YOLOKeypointsDetector class."""
+
 import logging
 from typing import List, Tuple
 
@@ -23,6 +25,9 @@ logger = logging.getLogger(__name__)
 class YOLOKeypointsDetector:
     """
     YOLOKeypointsDetector is a class that wrappes the YOLO model for keypoints detection.
+
+    Attributes:
+        model (YOLO): The YOLO model for keypoints detection.
     """
 
     def __init__(self):
@@ -50,7 +55,7 @@ class YOLOKeypointsDetector:
         results: Results = self.model(frame_image_resized)[0]
 
         boxes = self._extract_boxes(results)
-        keypoints = self._extract_keypoints(results, frame_image.shape, frame_image_resized.shape)
+        keypoints = self._extract_keypoints(results, frame_image.shape, frame_image_resized.shape)  # type: ignore
 
         logger.info(
             f"Frame ID {frame.frame_id} processed with {len(keypoints)} keypoints and "
@@ -62,11 +67,25 @@ class YOLOKeypointsDetector:
         )
 
     def _decode_frame(self, content: bytes) -> np.ndarray:
-        """Decodes a video frame from bytes."""
+        """Decodes a video frame from bytes.
+
+        Args:
+            content (bytes): The frame content.
+
+        Returns:
+            np.ndarray: The decoded frame.
+        """
         return cv2.imdecode(np.frombuffer(content, np.uint8), cv2.IMREAD_COLOR)
 
     def _extract_boxes(self, results: Results) -> List[keypoints_detection_pb2.BoundingBox]:
-        """Extracts bounding boxes from YOLO results."""
+        """Extracts bounding boxes from YOLO results.
+
+        Args:
+            results (Results): The YOLO results.
+
+        Returns:
+            List[keypoints_detection_pb2.BoundingBox]: The extracted bounding boxes.
+        """
         boxes = []
         labels = results.names
 
@@ -92,7 +111,16 @@ class YOLOKeypointsDetector:
         original_shape: Tuple[int, int, int],
         resized_shape: Tuple[int, int, int],
     ) -> List[keypoints_detection_pb2.Keypoint]:
-        """Extracts keypoints from YOLO results."""
+        """Extracts keypoints from YOLO results.
+
+        Args:
+            results (Results): The YOLO results.
+            original_shape (Tuple[int, int, int]): The original frame shape.
+            resized_shape (Tuple[int, int, int]): The resized frame shape.
+
+        Returns:
+            List[keypoints_detection_pb2.Keypoint]: The extracted keypoints.
+        """
         keypoints = []
         original_height, original_width, _ = original_shape
         height, width, _ = resized_shape

@@ -1,3 +1,5 @@
+"""Module that contains the gRPC server for the ball inference service."""
+
 import logging
 import os
 import signal
@@ -24,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInferenceServiceServicer):
     """
-    Class that implements the YOLOBallInferenceServiceServicer from the gRPC generated files.
+    Class to implement the gRPC service for the ball inference.
 
     Attributes:
-        model: The YOLO model to be used for inference.
+        inferer (YOLOBallInferer): YOLO Ball Inferer
     """
 
     def __init__(self):
@@ -67,7 +69,7 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
             self.inferer.reset_tracker()
 
 
-def shutdown_server(server, servicer):
+def shutdown_server(server: grpc.Server, servicer: YOLOBallInferenceServiceServicer):
     """
     Gracefully shuts down the server and logs shutdown events.
     """

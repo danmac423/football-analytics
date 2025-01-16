@@ -1,3 +1,5 @@
+"""Module responsible for assigning players to teams."""
+
 import logging
 
 import cv2
@@ -22,7 +24,19 @@ logger = logging.getLogger(__name__)
 
 
 class TeamAssignmentProcessor:
-    """Class responsible for assigning players to teams."""
+    """
+    Class responsible for assigning players to teams.
+
+    Attributes:
+        embedding_model (SiglipVisionModel): The embedding model.
+        embedding_processor (AutoProcessor): The embedding processor.
+        reducer (umap.UMAP): The UMAP reducer.
+        clustering_model (KMeans): The clustering model.
+
+    Args:
+        embedding_model_path (str): The path to the embedding model.
+        n_clusters (int): The number of clusters.
+    """
 
     def __init__(
         self, embedding_model_path: str = "google/siglip-base-patch16-224", n_clusters: int = 2
@@ -81,6 +95,16 @@ class TeamAssignmentProcessor:
     def collect_crops(
         player_responses: list[player_inference_pb2.PlayerInferenceResponse], frames
     ):
+        """Collects player crops from player inference responses.
+
+        Args:
+            player_responses (list[player_inference_pb2.PlayerInferenceResponse]): List of player
+                inference responses.
+            frames: List of frames.
+
+        Returns:
+            list: List of player crops.
+        """
         crops = []
 
         for i, player_response in enumerate(player_responses):
@@ -90,7 +114,7 @@ class TeamAssignmentProcessor:
             detections: sv.Detections = to_supervision(player_response, frame_image)
             detections = detections.with_nms(threshold=0.5, class_agnostic=True)
             if detections.class_id is not None:
-                detections = detections[detections.class_id == PLAYER_ID]
+                detections = detections[detections.class_id == PLAYER_ID]  # type: ignore
                 players_crops = [sv.crop_image(frame_image, xyxy) for xyxy in detections.xyxy]
                 crops += players_crops
 

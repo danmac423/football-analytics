@@ -1,3 +1,8 @@
+"""
+Module for the Inference Manager service. This service is responsible for managing the inference
+services for players, ball, and keypoints detection.
+"""
+
 import logging
 import os
 import queue
@@ -42,6 +47,28 @@ logger = logging.getLogger(__name__)
 
 
 class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManagerServiceServicer):
+    """
+    Class to implement the gRPC service for the Inference Manager. This service is responsible for
+    managing the inference services for players, ball, and keypoints detection.
+
+    Attributes:
+        ball_channel (grpc.Channel): gRPC channel for the ball inference service
+        player_channel (grpc.Channel): gRPC channel for the player inference service
+        keypoints_channel (grpc.Channel): gRPC channel for the keypoints detection service
+        ball_stub (ball_inference_pb2_grpc.YOLOBallInferenceServiceStub): gRPC stub for the ball
+            inference service
+        player_stub (player_inference_pb2_grpc.YOLOPlayerInferenceServiceStub): gRPC stub for the
+            player inference service
+        keypoints_stub (keypoints_detection_pb2_grpc.YOLOKeypointsDetectionServiceStub): gRPC stub
+            for the keypoints detection service
+        queues (dict[str, queue.Queue]): dictionary of queues for the responses from the inference
+            services
+        threads (dict): dictionary of threads for processing responses from the inference services
+        stop_event (threading.Event): event to signal the threads to stop
+        frame_annotator (FrameAnnotator): FrameAnnotator object for annotating frames
+        velocity_estimator (VelocityEstimator): VelocityEstimator object for estimating velocities
+    """
+
     def __init__(self):
         logger.info("Initializing Inference Manager Service...")
 
@@ -57,7 +84,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             self.keypoints_channel
         )
 
-        self.queues = {
+        self.queues: dict[str, queue.Queue] = {
             "ball": queue.Queue(),
             "players": queue.Queue(),
             "keypoints": queue.Queue(),
@@ -69,7 +96,6 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         self.frame_annotator = FrameAnnotator()
 
         self.velocity_estimator = VelocityEstimator()
-        # self.view_transformer = None
 
         logger.info("Inference Manager Service initialized successfully.")
 
@@ -91,9 +117,17 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         frames: list,
         thread_name: str,
         context: grpc.ServicerContext,
-    ) -> None:
+    ):
         """
         Generic method to process responses from a gRPC service.
+
+        Args:
+            stub (object): The gRPC stub to call the method on.
+            method_name (str): The name of the method to call.
+            queue (queue.Queue): The queue to put the responses in.
+            frames (list): The list of frames to process.
+            thread_name (str): The name of the thread.
+            context (grpc.ServicerContext): The context of the gRPC request.
         """
         try:
             logger.info(f"Thread {thread_name} started.")
@@ -121,6 +155,17 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             return None
 
     def _get_from_queue(self, queue: queue.Queue, frame_id: int, queue_name: str) -> Any:
+        """
+        Gets an item from a queue and logs errors.
+
+        Args:
+            queue (queue.Queue): The queue to get the item from.
+            frame_id (int): The frame ID to get the item for.
+            queue_name (str): The name of the queue.
+
+        Returns:
+            Any: The item from the queue
+        """
         try:
             while not self.stop_event.is_set():
                 return queue.get()
@@ -136,6 +181,17 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
     def ProcessFrames(
         self, request_iterator: Iterator[ball_inference_pb2.Frame], context: grpc.ServicerContext
     ) -> Generator[inference_manager_pb2.Frame, Any, Any]:
+        """
+        Main method to process frames and return annotated frames. This method is called by the
+        client to process frames and return annotated frames.
+
+        Args:
+            request_iterator (Iterator[ball_inference_pb2.Frame]): The iterator for the request.
+            context (grpc.ServicerContext): The context of the gRPC request.
+
+        Yields:
+            Generator[inference_manager_pb2.Frame, Any, Any]: The annotated frames
+        """
         client_address = context.peer()
         logger.info(f"Client connected: {client_address}")
 
@@ -254,9 +310,13 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         logger.info(f"Finished processing frames for client: {client_address}")
 
 
-def shutdown_server(server, servicer: InferenceManagerServiceServicer):
+def shutdown_server(server: grpc.Server, servicer: InferenceManagerServiceServicer):
     """
     Gracefully shuts down the server and waits for threads to complete.
+
+    Args:
+        server (grpc.Server): The gRPC server to shut down.
+        servicer (InferenceManagerServiceServicer): The servicer object to stop.
     """
     logger.info("Shutting down server...")
 

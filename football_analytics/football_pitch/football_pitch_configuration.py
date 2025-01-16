@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 @dataclass
@@ -15,8 +15,12 @@ class FootballPitchConfiguration:
     penalty_spot_distance: int = 1100
 
     @property
-    def vertices(self) -> List[Tuple[int, int]]:
-        """Calculate the vertices of the soccer pitch."""
+    def vertices(self) -> List[Tuple[Union[int, float], Union[int, float]]]:
+        """Calculate the vertices of the soccer pitch.
+
+        Returns:
+            List[Tuple[Union[int, float], Union[int, float]]]: List of pitch vertices.
+        """
         return [
             # Left side
             (0, 0),  # 1
