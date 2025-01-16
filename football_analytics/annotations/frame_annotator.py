@@ -1,3 +1,4 @@
+"""Module for annotating frames with player, ball, and keypoints data."""
 
 import cv2
 import numpy as np
@@ -12,6 +13,16 @@ from services.player_inference.grpc_files import player_inference_pb2
 
 
 class FrameAnnotator:
+    """
+    Class to annotate frames with player, ball, and keypoints data. The class uses the Supervision
+    library for annotations.
+
+    Attributes:
+        ellipse_annotator (sv.EllipseAnnotator): The ellipse annotator.
+        triangle_annotator (sv.TriangleAnnotator): The triangle annotator.
+        vertex_annotator (sv.VertexAnnotator): The vertex
+    """
+
     def __init__(self):
         self.ellipse_annotator = sv.EllipseAnnotator(
             color=sv.ColorPalette.from_hex(PLAYER_COLORS), thickness=2
@@ -30,7 +41,20 @@ class FrameAnnotator:
         velocities: dict,
     ) -> np.ndarray:
         """
-        Annotates a frame with player, ball, and keypoints data if available.
+        Annotates a frame with player, ball, and keypoints data if available. The annotations are
+        drawn on the frame ndarray.
+
+        Args:
+            frame_ndarray (np.ndarray): The frame ndarray.
+            player_response (player_inference_pb2.PlayerInferenceResponse): The player inference
+                response.
+            ball_response (ball_inference_pb2.BallInferenceResponse): The ball inference response.
+            keypoints_response (keypoints_detection_pb2.KeypointsDetectionResponse): The keypoints
+                detection response.
+            velocities (dict): The velocities of the players.
+
+        Returns:
+            np.ndarray: The annotated frame.
         """
 
         annotated_frame = frame_ndarray
@@ -79,7 +103,22 @@ class FrameAnnotator:
         player_response: player_inference_pb2.PlayerInferenceResponse,
         ball_response: ball_inference_pb2.BallInferenceResponse,
         keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
-    ):
+    ) -> np.ndarray:
+        """
+        Generates a radar visualization on the given frame. The radar visualization shows the
+        football pitch with the detected players, goalkeepers, referees, and the ball.
+
+        Args:
+            frame (np.ndarray): The frame.
+            player_response (player_inference_pb2.PlayerInferenceResponse): The player inference
+                response.
+            ball_response (ball_inference_pb2.BallInferenceResponse): The ball inference response.
+            keypoints_response (keypoints_detection_pb2.KeypointsDetectionResponse): The keypoints
+                detection response.
+
+        Returns:
+            np.ndarray: The frame with the radar visualization.
+        """
         if not keypoints_response or not keypoints_response.keypoints:
             return frame
 

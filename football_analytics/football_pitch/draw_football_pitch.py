@@ -1,4 +1,3 @@
-
 from typing import Optional
 
 import cv2
@@ -12,12 +11,12 @@ from football_analytics.football_pitch.football_pitch_configuration import (
 
 def draw_football_pitch(
     config: FootballPitchConfiguration,
-    background_color: sv.Color = sv.Color.from_hex('#7EAF34'),
+    background_color: sv.Color = sv.Color.from_hex("#7EAF34"),
     line_color: sv.Color = sv.Color.WHITE,
     padding: int = 50,
     line_thickness: int = 4,
     point_radius: int = 8,
-    scale: float = 0.1
+    scale: float = 0.1,
 ) -> np.ndarray:
     """Draw a football pitch based on the provided configuration.
 
@@ -33,38 +32,38 @@ def draw_football_pitch(
     Returns:
         np.ndarray: Image of the football pitch.
     """
-    def scale_and_pad(point):
-        """Scale and pad a point to fit the image dimensions."""
-        return (
-            int(point[0] * scale) + padding,
-            int(point[1] * scale) + padding
-        )
 
-    def draw_line(image, start, end):
+    def scale_and_pad(point: tuple[float, float]) -> tuple[int, int]:
+        """Scale and pad a point to fit the image dimensions."""
+        return (int(point[0] * scale) + padding, int(point[1] * scale) + padding)
+
+    def draw_line(image: np.ndarray, start: int, end: int):
         """Draw a line on the pitch image."""
         cv2.line(
             img=image,
             pt1=scale_and_pad(config.vertices[start - 1]),
             pt2=scale_and_pad(config.vertices[end - 1]),
             color=line_color.as_bgr(),
-            thickness=line_thickness
+            thickness=line_thickness,
         )
 
-    def draw_circle(image, center, radius, fill=False):
+    def draw_circle(
+        image: np.ndarray, center: tuple[float, float], radius: float, fill: bool = False
+    ):
         """Draw a circle on the pitch image."""
         cv2.circle(
             img=image,
             center=scale_and_pad(center),
             radius=int(radius * scale),
             color=line_color.as_bgr(),
-            thickness=-1 if fill else line_thickness
+            thickness=-1 if fill else line_thickness,
         )
 
-    def draw_penalty_spots(image):
+    def draw_penalty_spots(image: np.ndarray):
         """Draw penalty spots on the pitch image."""
         penalty_spots = [
             (config.penalty_spot_distance, config.width / 2),
-            (config.length - config.penalty_spot_distance, config.width / 2)
+            (config.length - config.penalty_spot_distance, config.width / 2),
         ]
         for spot in penalty_spots:
             draw_circle(image, spot, point_radius / scale, fill=True)
@@ -80,7 +79,7 @@ def draw_football_pitch(
     draw_circle(
         image=pitch_image,
         center=(config.length / 2, config.width / 2),
-        radius=config.centre_circle_radius
+        radius=config.centre_circle_radius,
     )
 
     draw_penalty_spots(pitch_image)
@@ -97,7 +96,7 @@ def draw_points_on_pitch(
     thickness: int = 2,
     padding: int = 50,
     scale: float = 0.1,
-    pitch: Optional[np.ndarray] = None
+    pitch: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """
     Draws points on a football pitch.
@@ -116,37 +115,27 @@ def draw_points_on_pitch(
     Returns:
         np.ndarray: Image of the soccer pitch with points drawn on it.
     """
+
     def scale_and_pad(point):
         """Scale and pad a point to fit the image dimensions."""
-        return (
-            int(point[0] * scale) + padding,
-            int(point[1] * scale) + padding
-        )
+        return (int(point[0] * scale) + padding, int(point[1] * scale) + padding)
 
     def draw_single_point(image, point):
         """Draw a single point on the pitch image."""
         scaled_point = scale_and_pad(point)
         cv2.circle(
-            img=image,
-            center=scaled_point,
-            radius=radius,
-            color=main_color.as_bgr(),
-            thickness=-1
+            img=image, center=scaled_point, radius=radius, color=main_color.as_bgr(), thickness=-1
         )
         cv2.circle(
             img=image,
             center=scaled_point,
             radius=radius,
             color=edge_color.as_bgr(),
-            thickness=thickness
+            thickness=thickness,
         )
 
     if pitch is None:
-        pitch = draw_football_pitch(
-            config=config,
-            padding=padding,
-            scale=scale
-        )
+        pitch = draw_football_pitch(config=config, padding=padding, scale=scale)
 
     for point in xy:
         draw_single_point(pitch, point)
