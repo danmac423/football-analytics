@@ -63,7 +63,7 @@ def main(training_config_path: Path):
         config["data"] = os.path.abspath(config["data"])
 
         if "project" not in config.keys():
-            config["project"] = RUNS_DIR / f"{config["model"][:-3]}" / f"train_{current_timestamp}"
+            config["project"] = RUNS_DIR / f"{config['model'][:-3]}" / f"train_{current_timestamp}"
 
         logger.info(f"Saving training run to: {config['project']}")
 
