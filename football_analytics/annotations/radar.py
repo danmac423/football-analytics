@@ -128,9 +128,6 @@ def generate_radar(
     overlay = frame.copy()
     overlay[y_offset:height, x_offset : x_offset + small_pitch_width] = small_pitch
 
-
-    cv2.addWeighted(
-        overlay, alpha, frame, 1 - alpha, 0, dst=frame
-    )
+    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, dst=frame)
 
     return frame

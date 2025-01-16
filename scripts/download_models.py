@@ -48,7 +48,7 @@ if __name__ == "__main__":
     model_ids = [
         "danielmachniak/ball-inference-model/pyTorch/default",
         "danielmachniak/player-inference-model/pyTorch/default",
-        "danielmachniak/keypoints-detection-model/pyTorch/default"
+        "danielmachniak/keypoints-detection-model/pyTorch/default",
     ]
 
     download_models_from_kaggle(model_ids)

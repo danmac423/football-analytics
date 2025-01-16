@@ -7,10 +7,24 @@ PYTHON_VERSION = 3.12
 PYTHON_INTERPRETER = python
 
 #################################################################################
+# CLIENT	                                                                    #
+#################################################################################
+
+.PHONY: interactive save-to-file
+
+# Command for interactive mode
+interactive:
+	python services/inference_manager/examples/inference_manager_client.py --interactive-mode $(path)
+
+# Command for save-to-file mode
+save-to-file:
+	python services/inference_manager/examples/inference_manager_client.py --save-to-file-mode $(input_path) $(output_path)
+
+#################################################################################
 # SERVICES                                                                      #
 #################################################################################
 
-
+## Start services with YOLO model
 .PHONY: dev-services
 dev-services:
 	@echo "Starting ball_inference_service, player_inference_service, and keypoints_detection_service..."
@@ -19,28 +33,34 @@ dev-services:
 	@tmux new-session -d -s keypoints-detection-service 'make run-keypoints-detection-service'
 	@echo "Services started."
 
+## Start full stack with Inference Manager Service
 .PHONY: full-stack
 full-stack: dev-services
 	@echo "Starting inference_manager_service..."
 	@tmux new-session -d -s inference-manager-service 'make run-inference-manager-service'
 	@echo "Service started. Full stack is running."
 
+## Start ball_inference_service
 .PHONY: run-ball-inference-service
 run-ball-inference-service:
 	$(PYTHON_INTERPRETER) services/ball_inference/ball_inference_service.py
 
+## Start player_inference_service
 .PHONY: run-player-inference-service
 run-player-inference-service:
 	$(PYTHON_INTERPRETER) services/player_inference/player_inference_service.py
 
+## Start keypoints_detection_service
 .PHONY: run-keypoints-detection-service
 run-keypoints-detection-service:
 	$(PYTHON_INTERPRETER) services/keypoints_detection/keypoints_detection_service.py
 
+## Start inference_manager_service
 .PHONY: run-inference-manager-service
 run-inference-manager-service:
 	$(PYTHON_INTERPRETER) services/inference_manager/inference_manager_service.py
 
+## Stop all services
 .PHONY: stop-services
 stop-services:
 	@echo "Stopping all services..."

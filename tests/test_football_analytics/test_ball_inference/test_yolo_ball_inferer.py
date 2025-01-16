@@ -79,6 +79,7 @@ def test_yolo_ball_inferer_perform_inference(mock_yolo, mock_detections):
     tracker.update.assert_called_once()
     assert detections is not None
 
+
 def test_yolo_ball_inferer_format_detections():
     detections = MagicMock(xyxy=np.array([[10, 20, 30, 40]]), confidence=np.array([0.9]))
     inferer = YOLOBallInferer()
