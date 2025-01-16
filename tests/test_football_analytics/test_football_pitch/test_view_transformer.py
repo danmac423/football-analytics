@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pytest
 
-from football_analytics.football_pitch.view_transformer import ViewTransformer
+from football_analytics.camera_estimation.view_transformer import ViewTransformer
 
 
 def test_view_transformer_initialization():
