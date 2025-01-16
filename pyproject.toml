@@ -78,4 +78,4 @@ pythonpath = ["football_analytics"]
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
-exclude = ["grpc_files"]
+exclude = ["grpc_files", "notebooks"]
