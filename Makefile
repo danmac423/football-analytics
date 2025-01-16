@@ -10,20 +10,11 @@ PYTHON_INTERPRETER = python
 # COMMANDS                                                                      #
 #################################################################################
 
-
 ## Install Python Dependencies
-.PHONY: requirements
-requirements:
-	$(PYTHON_INTERPRETER) -m pip install -U pip
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
-
-
-## Install Python Dependencies with uv
 .PHONY: uv
 uv:
-	uv sync
-	uv pip install -e .
-
+	uv venv
+	. .venv/bin/activate && uv pip install -e .
 
 ## Delete all compiled Python files
 .PHONY: clean
@@ -31,45 +22,30 @@ clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 
-## Lint using flake8 and black (use `make format` to do formatting)
+## Lint using ruff and isort
 .PHONY: lint
 lint:
-	flake8 football_analytics
-	isort --check --diff --profile black football_analytics
-	black --check --config pyproject.toml football_analytics
+	ruff check
 
-## Format source code with black
+## Format source code with ruff
 .PHONY: format
 format:
-	black --config pyproject.toml football_analytics
+	ruff format
 
+## Run mypy
+.PHONY: mypy
+mypy:
+	mypy .
 
+## Run tests
+.PHONY: test
+test:
+	$(PYTHON_INTERPRETER) -m pytest tests
 
-
-## Set up python interpreter environment
-.PHONY: create_environment
-create_environment:
-	@rm -rf .venv
-	$(PYTHON_INTERPRETER)$(PYTHON_VERSION) -m venv .venv
-	@echo ">>> New python interpreter environment created. Activate it using 'source .venv/bin/activate'"
-
-
-.PHONY: freeze
-freeze:
-	$(PYTHON_INTERPRETER) -m pip freeze > requirements.txt
-
-
-## Run the service
-.PHONY: run_service
-run_service:
-	uvicorn services.track.app:app --host 0.0.0.0 --port 8000 --reload
-
-## Run players detection
-# Usage example:
-# make run_players_detection source_video_path=data/input/test_video.mp4 output_video_path=data/output/output_video.mp4
-.PHONY: run_analytics $(source_video_path) $(output_video_path)
-run_analytics:
-	$(PYTHON_INTERPRETER) scripts/run_analytics.py $(source_video_path) $(output_video_path)
+## Run tests with coverage
+.PHONY: coverage
+coverage:
+	$(PYTHON_INTERPRETER) -m pytest --cov=football_analytics --cov-report=term-missing tests
 
 
 ## Download models from kaggle
