@@ -1,5 +1,8 @@
+from pathlib import Path
+
 import cv2
 import grpc
+import click
 import numpy as np
 
 from config import INFERENCE_MANAGER_SERVICE_ADDRESS
@@ -45,6 +48,27 @@ def run_client(video_path: str):
     cv2.destroyAllWindows()
 
 
+@click.command()
+@click.option(
+    "--interactive-mode",
+    is_flag=True,
+    help="Run the client in interactive mode to process a video file."
+)
+@click.argument("video_path", type=click.Path(exists=True, dir_okay=False))
+def main(interactive_mode, video_path):
+    """
+    CLI application to process video files with the gRPC inference service.
+
+    VIDEO_PATH: Path to the mp4 video file to be processed.
+    """
+    if interactive_mode:
+        click.echo("Interactive mode enabled.")
+        click.echo(f"Processing video: {video_path}")
+        run_client(video_path)
+    else:
+        click.echo("Interactive mode not enabled. No action taken.")
+
+
+
 if __name__ == "__main__":
-    video_path = "data/test.mp4"
-    run_client(video_path)
+    main()
