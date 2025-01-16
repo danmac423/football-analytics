@@ -44,14 +44,11 @@ def test_annotate_frame(mock_vertex, mock_triangle, mock_ellipse, mock_to_superv
 
     velocities = {1: 5.0}
 
-    annotated_frame = annotator.annotate_frame(
-        frame, player_response, ball_response, keypoints_response, velocities
-    )
+    annotated_frame = annotator.annotate_frame(frame, player_response, ball_response, velocities)
 
     assert annotated_frame is not None
     mock_ellipse_instance.annotate.assert_called_once()
     mock_triangle_instance.annotate.assert_called_once()
-    mock_vertex_instance.annotate.assert_called_once()
     mock_to_supervision.assert_called()
 
 
@@ -83,13 +80,10 @@ def test_annotate_frame_player_error(
     player_response.boxes.add(x1_n=0.1, y1_n=0.2, x2_n=0.3, y2_n=0.4, tracker_id=1)
 
     ball_response = ball_inference_pb2.BallInferenceResponse()
-    keypoints_response = keypoints_detection_pb2.KeypointsDetectionResponse()
     velocities = {}
 
     with pytest.raises(Exception, match="Error annotating players: Simulated player error"):
-        annotator.annotate_frame(
-            frame, player_response, ball_response, keypoints_response, velocities
-        )
+        annotator.annotate_frame(frame, player_response, ball_response, velocities)
 
 
 @patch("football_analytics.annotations.frame_annotator.to_supervision")
@@ -119,65 +113,10 @@ def test_annotate_frame_ball_error(mock_vertex, mock_triangle, mock_ellipse, moc
     ball_response = ball_inference_pb2.BallInferenceResponse()
     ball_response.boxes.add(x1_n=0.5, y1_n=0.5, x2_n=0.6, y2_n=0.6, confidence=0.8)
 
-    keypoints_response = keypoints_detection_pb2.KeypointsDetectionResponse()
     velocities = {}
 
     with pytest.raises(Exception, match="Error annotating ball: Simulated ball error"):
-        annotator.annotate_frame(
-            frame, player_response, ball_response, keypoints_response, velocities
-        )
-
-
-@patch("football_analytics.annotations.frame_annotator.to_supervision")
-@patch("football_analytics.annotations.frame_annotator.sv.EllipseAnnotator")
-@patch("football_analytics.annotations.frame_annotator.sv.TriangleAnnotator")
-@patch("football_analytics.annotations.frame_annotator.sv.VertexAnnotator")
-def test_annotate_frame_keypoints_error(
-    mock_vertex, mock_triangle, mock_ellipse, mock_to_supervision
-):
-    mock_ellipse_instance = MagicMock()
-    mock_triangle_instance = MagicMock()
-    mock_vertex_instance = MagicMock()
-
-    mock_ellipse.return_value = mock_ellipse_instance
-    mock_triangle.return_value = mock_triangle_instance
-    mock_vertex.return_value = mock_vertex_instance
-
-    def mock_to_supervision_side_effect(response, frame):
-        if isinstance(response, keypoints_detection_pb2.KeypointsDetectionResponse):
-            raise ValueError("Simulated keypoints error")
-        if isinstance(response, player_inference_pb2.PlayerInferenceResponse):
-            return MagicMock(
-                xyxy=np.array([[10, 10, 20, 20]]),
-                tracker_id=np.array([1]),
-            )
-        if isinstance(response, ball_inference_pb2.BallInferenceResponse):
-            return MagicMock(xyxy=np.array([[30, 30, 40, 40]]))
-
-    mock_to_supervision.side_effect = mock_to_supervision_side_effect
-
-    mock_ellipse_instance.annotate.return_value = np.zeros((100, 100, 3), dtype=np.uint8)
-    mock_triangle_instance.annotate.return_value = np.zeros((100, 100, 3), dtype=np.uint8)
-    mock_vertex_instance.annotate.return_value = np.zeros((100, 100, 3), dtype=np.uint8)
-
-    annotator = FrameAnnotator()
-    frame = np.zeros((100, 100, 3), dtype=np.uint8)
-
-    player_response = player_inference_pb2.PlayerInferenceResponse()
-    player_response.boxes.add(x1_n=0.1, y1_n=0.2, x2_n=0.3, y2_n=0.4, tracker_id=1)
-
-    ball_response = ball_inference_pb2.BallInferenceResponse()
-    ball_response.boxes.add(x1_n=0.5, y1_n=0.5, x2_n=0.6, y2_n=0.6, confidence=0.8)
-
-    keypoints_response = keypoints_detection_pb2.KeypointsDetectionResponse()
-    keypoints_response.keypoints.add(x=50, y=50, confidence=0.9)
-
-    velocities = {1: 5.0}
-
-    with pytest.raises(Exception, match="Error annotating keypoints: Simulated keypoints error"):
-        annotator.annotate_frame(
-            frame, player_response, ball_response, keypoints_response, velocities
-        )
+        annotator.annotate_frame(frame, player_response, ball_response, velocities)
 
 
 @patch("football_analytics.annotations.frame_annotator.to_supervision")

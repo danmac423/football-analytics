@@ -300,7 +300,6 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                     annotated_frame,
                     player_response,
                     ball_response,
-                    keypoints_response,
                     velocities,
                 )
                 annotated_frame = self.frame_annotator.generate_radar(

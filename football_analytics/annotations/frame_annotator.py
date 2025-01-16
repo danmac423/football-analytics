@@ -37,7 +37,6 @@ class FrameAnnotator:
         frame_ndarray: np.ndarray,
         player_response: player_inference_pb2.PlayerInferenceResponse,
         ball_response: ball_inference_pb2.BallInferenceResponse,
-        keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
         velocities: dict,
     ) -> np.ndarray:
         """
@@ -49,8 +48,6 @@ class FrameAnnotator:
             player_response (player_inference_pb2.PlayerInferenceResponse): The player inference
                 response.
             ball_response (ball_inference_pb2.BallInferenceResponse): The ball inference response.
-            keypoints_response (keypoints_detection_pb2.KeypointsDetectionResponse): The keypoints
-                detection response.
             velocities (dict): The velocities of the players.
 
         Returns:
@@ -87,13 +84,6 @@ class FrameAnnotator:
                 annotated_frame = self.triangle_annotator.annotate(annotated_frame, detections)
         except Exception as e:
             raise Exception(f"Error annotating ball: {e}")
-
-        try:
-            if keypoints_response is not None:
-                keypoints = to_supervision(keypoints_response, frame_ndarray)
-                annotated_frame = self.vertex_annotator.annotate(annotated_frame, keypoints)
-        except Exception as e:
-            raise Exception(f"Error annotating keypoints: {e}")
 
         return annotated_frame
 
