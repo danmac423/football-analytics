@@ -8,11 +8,16 @@ BALL_INFERENCE_SERVICE_ADDRESS = "localhost:50052"
 PLAYER_INFERENCE_MODEL_PATH = "models/player_inference.pt"
 PLAYER_INFERENCE_SERVICE_ADDRESS = "localhost:50053"
 
-KEYPOINTS_DETECTION_MODEL_PATH="models/keypoints_detection.pt"
-KEYPOINTS_DETECTION_SERVICE_ADDRESS="localhost:50054"
+KEYPOINTS_DETECTION_MODEL_PATH = "models/keypoints_detection.pt"
+KEYPOINTS_DETECTION_SERVICE_ADDRESS = "localhost:50054"
 
 DEVICE = "cpu"
 if torch.cuda.is_available():
     DEVICE = "cuda"
 elif torch.mps.is_available():
     DEVICE = "mps"
+
+
+BALL_COLOR = "#FF1493"
+PLAYER_COLORS = ["#00BFFF", "#FF6347", "#FFD700"]
+KEYPOINTS_COLOR = "#FF1493"

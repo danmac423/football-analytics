@@ -46,5 +46,5 @@ def run_client(video_path: str):
 
 
 if __name__ == "__main__":
-    video_path = "data/input/test_video.mp4"
+    video_path = "data/test.mp4"
     run_client(video_path)
