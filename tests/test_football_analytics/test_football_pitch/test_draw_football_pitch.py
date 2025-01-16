@@ -1,7 +1,6 @@
-
-import numpy as np
 from unittest.mock import patch
 
+import numpy as np
 
 from football_analytics.football_pitch.draw_football_pitch import (
     draw_football_pitch,
@@ -53,11 +52,14 @@ def test_draw_points_on_pitch_empty():
 
     assert np.array_equal(result_image, pitch_image)
 
+
 def test_draw_points_on_pitch_none():
     config = FootballPitchConfiguration()
     points = np.array([[1000, 2000], [3000, 4000]])
 
-    with patch("football_analytics.football_pitch.draw_football_pitch.draw_football_pitch") as mock_draw_pitch:
+    with patch(
+        "football_analytics.football_pitch.draw_football_pitch.draw_football_pitch"
+    ) as mock_draw_pitch:
         mock_draw_pitch.return_value = np.zeros((720, 1280, 3), dtype=np.uint8)
 
         result_image = draw_points_on_pitch(config, points, pitch=None)
@@ -70,4 +72,3 @@ def test_draw_points_on_pitch_none():
 
     # assert np.any(result_image)
     # assert draw_football_pitch.assert_any_call()
-

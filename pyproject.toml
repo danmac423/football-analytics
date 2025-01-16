@@ -29,6 +29,7 @@ dependencies = [
     "loguru",
     "mkdocs",
     "pip",
+    "kaggle",
     "types-requests",
     "python-dotenv",
     "typer",
@@ -62,6 +63,7 @@ dependencies = [
     "tqdm==4.67.1",
     "umap-learn==0.5.7",
     "click"
+    "types-PyYAML"
   ]
 
 
@@ -79,4 +81,4 @@ pythonpath = ["football_analytics"]
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
-exclude = ["grpc_files", "notebooks"]
+exclude = ["grpc_files", "notebooks", "tests", "ai"]

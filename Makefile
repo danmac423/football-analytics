@@ -7,23 +7,57 @@ PYTHON_VERSION = 3.12
 PYTHON_INTERPRETER = python
 
 #################################################################################
-# COMMANDS                                                                      #
+# SERVICES                                                                      #
 #################################################################################
 
 
+.PHONY: dev-services
+dev-services:
+	@echo "Starting ball_inference_service, player_inference_service, and keypoints_detection_service..."
+	@tmux new-session -d -s ball-inference-service 'make run-ball-inference-service'
+	@tmux new-session -d -s player-inference-service 'make run-player-inference-service'
+	@tmux new-session -d -s keypoints-detection-service 'make run-keypoints-detection-service'
+	@echo "Services started."
+
+.PHONY: full-stack
+full-stack: dev-services
+	@echo "Starting inference_manager_service..."
+	@tmux new-session -d -s inference-manager-service 'make run-inference-manager-service'
+	@echo "Service started. Full stack is running."
+
+.PHONY: run-ball-inference-service
+run-ball-inference-service:
+	$(PYTHON_INTERPRETER) services/ball_inference/ball_inference_service.py
+
+.PHONY: run-player-inference-service
+run-player-inference-service:
+	$(PYTHON_INTERPRETER) services/player_inference/player_inference_service.py
+
+.PHONY: run-keypoints-detection-service
+run-keypoints-detection-service:
+	$(PYTHON_INTERPRETER) services/keypoints_detection/keypoints_detection_service.py
+
+.PHONY: run-inference-manager-service
+run-inference-manager-service:
+	$(PYTHON_INTERPRETER) services/inference_manager/inference_manager_service.py
+
+.PHONY: stop-services
+stop-services:
+	@echo "Stopping all services..."
+	@ps aux | grep "services/" | grep -v grep | awk '{print $$2}' | xargs kill -9 || true
+	@echo "All services stopped."
+
+
+
+#################################################################################
+# COMMANDS                                                                      #
+#################################################################################
+
 ## Install Python Dependencies
-.PHONY: requirements
-requirements:
-	$(PYTHON_INTERPRETER) -m pip install -U pip
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
-
-
-## Install Python Dependencies with uv
 .PHONY: uv
 uv:
-	uv sync
-	uv pip install -e .
-
+	uv venv
+	. .venv/bin/activate && uv pip install -e .
 
 ## Delete all compiled Python files
 .PHONY: clean
@@ -31,55 +65,45 @@ clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 
-## Lint using flake8 and black (use `make format` to do formatting)
+## Lint using ruff and isort
 .PHONY: lint
 lint:
-	flake8 football_analytics
-	isort --check --diff --profile black football_analytics
-	black --check --config pyproject.toml football_analytics
+	ruff check
 
-## Format source code with black
+## Format source code with ruff
 .PHONY: format
 format:
-	black --config pyproject.toml football_analytics
+	ruff format
 
+## Run mypy
+.PHONY: mypy
+mypy:
+	mypy .
 
+## Run tests
+.PHONY: test
+test:
+	$(PYTHON_INTERPRETER) -m pytest tests
 
-
-## Set up python interpreter environment
-.PHONY: create_environment
-create_environment:
-	@rm -rf .venv
-	$(PYTHON_INTERPRETER)$(PYTHON_VERSION) -m venv .venv
-	@echo ">>> New python interpreter environment created. Activate it using 'source .venv/bin/activate'"
-
-
-.PHONY: freeze
-freeze:
-	$(PYTHON_INTERPRETER) -m pip freeze > requirements.txt
-
-
-## Run the service
-.PHONY: run_service
-run_service:
-	uvicorn services.track.app:app --host 0.0.0.0 --port 8000 --reload
-
-## Run players detection
-# Usage example:
-# make run_players_detection source_video_path=data/input/test_video.mp4 output_video_path=data/output/output_video.mp4
-.PHONY: run_analytics $(source_video_path) $(output_video_path)
-run_analytics:
-	$(PYTHON_INTERPRETER) scripts/run_analytics.py $(source_video_path) $(output_video_path)
+## Run tests with coverage
+.PHONY: coverage
+coverage:
+	$(PYTHON_INTERPRETER) -m pytest --cov=football_analytics --cov-report=term-missing tests
 
 
 #################################################################################
 # PROJECT RULES                                                                 #
 #################################################################################
 
+## Download models from kaggle
+.PHONY: download-models
+download_models:
+	$(PYTHON_INTERPRETER) scripts/download_models.py
+
 
 ## Make Dataset
 .PHONY: data
-data: 
+data:
 	$(PYTHON_INTERPRETER) ai/dataset.py
 
 
@@ -103,8 +127,8 @@ validate:
 
 
 ## Make optuna hyperparameter search experiment
-# Usage example: make optuna_hyperparameter_search path_to_hyperparameters_search_config=configurations/hyperparameter_search.json
-.PHONY: optuna_hyperparameter_search $(path_to_hyperparameters_search_config)
+# Usage example: make optuna-hyperparameter-search path_to_hyperparameters_search_config=configurations/hyperparameter_search.json
+.PHONY: optuna-hyperparameter-search $(path_to_hyperparameters_search_config)
 optuna_hyperparameter_search:
 	$(PYTHON_INTERPRETER) ai/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
 
