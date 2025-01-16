@@ -21,6 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInferenceServiceServicer):
     """
     Class that implements the YOLOBallInferenceServiceServicer from the gRPC generated files.
@@ -54,7 +55,9 @@ class YOLOBallInferenceServiceServicer(ball_inference_pb2_grpc.YOLOBallInference
                     response = self.inferer.infer_ball(frame_image)
                     response.frame_id = frame.frame_id
 
-                    logger.info(f"Frame ID {frame.frame_id} processed with {len(response.boxes)} detections.")
+                    logger.info(
+                        f"Frame ID {frame.frame_id} processed with {len(response.boxes)} detections."  # noqa
+                    )
 
                     yield response
                 except Exception as e:

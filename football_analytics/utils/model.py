@@ -20,8 +20,12 @@ def to_supervision(
 
     try:
         for box in ball_boxes:
-            if not (0 <= box.x1_n <= 1) or not (0 <= box.y1_n <= 1) or \
-               not (0 <= box.x2_n <= 1) or not (0 <= box.y2_n <= 1):
+            if (
+                not (0 <= box.x1_n <= 1)
+                or not (0 <= box.y1_n <= 1)
+                or not (0 <= box.x2_n <= 1)
+                or not (0 <= box.y2_n <= 1)
+            ):
                 raise ValueError(f"Bounding box coordinates must be in [0, 1], got {box}")
 
             x1 = int(box.x1_n * width)
@@ -53,8 +57,9 @@ def to_supervision(
         print(f"An unexpected error occurred: {e}")
         raise
 
+
 @multimethod
-def to_supervision(
+def to_supervision(  # noqa
     keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
     frame_ndarray: np.ndarray,
 ) -> sv.KeyPoints:
@@ -73,9 +78,7 @@ def to_supervision(
             kp_conf.append(confidence)
 
         kp_xy_array = (
-            np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2)
-            if kp_xy
-            else np.empty((0, 0, 2))
+            np.array(kp_xy, dtype=np.float32).reshape(1, -1, 2) if kp_xy else np.empty((0, 0, 2))
         )
         kp_conf_array = np.array(kp_conf, dtype=np.float32).reshape(1, -1) if kp_conf else None
 
@@ -95,7 +98,7 @@ def to_supervision(
 
 
 @multimethod
-def to_supervision(
+def to_supervision(  # noqa
     player_response: player_inference_pb2.PlayerInferenceResponse, frame_ndarray: np.ndarray
 ) -> sv.Detections:
     height, width, _ = frame_ndarray.shape

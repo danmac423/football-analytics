@@ -20,19 +20,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class YOLOKeypointsDetector():
+class YOLOKeypointsDetector:
     """
     YOLOKeypointsDetector is a class that wrappes the YOLO model for keypoints detection.
     """
+
     def __init__(self):
         logger.info("Initializing YOLO model...")
         self.model = YOLO(KEYPOINTS_DETECTION_MODEL_PATH).to(DEVICE)
         logger.info(f"YOLO model loaded from {KEYPOINTS_DETECTION_MODEL_PATH} on device {DEVICE}.")
 
     def detect_keypoints(
-            self,
-            frame: keypoints_detection_pb2.Frame
-        ) -> keypoints_detection_pb2.KeypointsDetectionResponse:
+        self, frame: keypoints_detection_pb2.Frame
+    ) -> keypoints_detection_pb2.KeypointsDetectionResponse:
         """
         Detects keypoints in the given frame.
 
@@ -61,7 +61,6 @@ class YOLOKeypointsDetector():
             frame_id=frame.frame_id, boxes=boxes, keypoints=keypoints
         )
 
-
     def _decode_frame(self, content: bytes) -> np.ndarray:
         """Decodes a video frame from bytes."""
         return cv2.imdecode(np.frombuffer(content, np.uint8), cv2.IMREAD_COLOR)
@@ -87,7 +86,12 @@ class YOLOKeypointsDetector():
 
         return boxes
 
-    def _extract_keypoints(self, results: Results, original_shape: Tuple[int, int, int], resized_shape: Tuple[int, int, int]) -> List[keypoints_detection_pb2.Keypoint]:
+    def _extract_keypoints(
+        self,
+        results: Results,
+        original_shape: Tuple[int, int, int],
+        resized_shape: Tuple[int, int, int],
+    ) -> List[keypoints_detection_pb2.Keypoint]:
         """Extracts keypoints from YOLO results."""
         keypoints = []
         original_height, original_width, _ = original_shape
