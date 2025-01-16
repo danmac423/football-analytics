@@ -134,6 +134,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
             method = getattr(stub, method_name)
             for response in method(iter(frames)):
                 if self.stop_event.is_set() or not context.is_active():
+                    self.queues[thread_name].put(None)
                     logger.info(f"Thread {thread_name} stopping due to shutdown signal.")
                     break
                 queue.put(response)
@@ -168,7 +169,11 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         """
         try:
             while not self.stop_event.is_set():
-                return queue.get()
+                item = queue.get()
+                if item is None:
+                    logger.info(f"Received termination signal for {queue_name}.")
+                    return None
+                return item
         except Empty:
             if self.stop_event.is_set():
                 logger.info(f"Server shutdown detected. Stopping wait for {queue_name}.")
@@ -192,6 +197,7 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
         Yields:
             Generator[inference_manager_pb2.Frame, Any, Any]: The annotated frames
         """
+
         client_address = context.peer()
         logger.info(f"Client connected: {client_address}")
 
@@ -285,7 +291,11 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 velocities = {}
             try:
                 annotated_frame = self.frame_annotator.annotate_frame(
-                    annotated_frame, player_response, ball_response, keypoints_response, velocities
+                    annotated_frame,
+                    player_response,
+                    ball_response,
+                    keypoints_response,
+                    velocities,
                 )
                 annotated_frame = self.frame_annotator.generate_radar(
                     annotated_frame, player_response, ball_response, keypoints_response
