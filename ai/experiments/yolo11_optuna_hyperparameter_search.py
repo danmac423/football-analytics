@@ -24,7 +24,7 @@ app = typer.Typer()
 def save_trials_to_json(
     trial: Trial, search: dict[str, Any], config: dict[str, Any], value: float
 ) -> None:
-    output_path = search["experiment_dir"] / f"trials_{search["model"][:-3]}.json"
+    output_path = search["experiment_dir"] / f"trials_{search['model'][:-3]}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if output_path.exists():
@@ -48,19 +48,18 @@ def save_trials_to_json(
 
 
 def create_config(
-        *,
-        model: str = None,
-        task: str = None,
-        data: str = None,
-        epochs: int = None,
-        batch: float | int = None,
-        imgsz: int = None,
-        plots: bool = None,
-        project: str = None,
-        mosaic: float = None,
-        remove_ball_label: bool = None,
+    *,
+    model: Any = None,
+    task: Any = None,
+    data: Any = None,
+    epochs: Any = None,
+    batch: Any = None,
+    imgsz: Any = None,
+    plots: Any = None,
+    project: Any = None,
+    mosaic: Any = None,
+    remove_ball_label: Any = None,
 ) -> dict[str, Any]:
-
     config = {}
 
     if model is not None:
@@ -105,11 +104,11 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
         imgsz=imgsz,
         plots=search.get("plots"),
         project=str(search.get("project")),
-        mosaic=search.get("mosaic")
+        mosaic=search.get("mosaic"),
     )
 
     if "remove_ball_label" in search.keys():
-        config = do_remove_ball_label(config, search.get("current_timestamp"))
+        config = do_remove_ball_label(config, str(search.get("current_timestamp")))
 
     train(config)
 
@@ -147,6 +146,7 @@ def run_trial(search: dict[str, Any]) -> optuna.Study:
 
     return study
 
+
 def get_best_config(search: dict[str, Any]) -> dict[str, Any]:
     study = run_trial(search)
 
@@ -173,8 +173,7 @@ def prepare_search_paths(search: dict[str, Any]) -> dict[str, Any]:
     logger.info(f"Current timestamp: {current_timestamp}")
 
     runs_dir = (
-            PROJ_ROOT
-            / f"ai/experiments/runs/{search["model"][:-3]}/experiment_{current_timestamp}"
+        PROJ_ROOT / f"ai/experiments/runs/{search['model'][:-3]}/experiment_{current_timestamp}"
     )
     search["project"] = runs_dir
 
@@ -189,7 +188,7 @@ def prepare_search_paths(search: dict[str, Any]) -> dict[str, Any]:
 
 
 def save_best_configuration(search: dict[str, Any], best_config: dict[str, Any]) -> None:
-    output_path = search["experiment_dir"] / f"best_config_{search["model"][:-3]}.json"
+    output_path = search["experiment_dir"] / f"best_config_{search['model'][:-3]}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     write_to_json(output_path, [best_config])

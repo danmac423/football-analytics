@@ -63,12 +63,14 @@ def main(training_config_path: Path):
         config["data"] = os.path.abspath(config["data"])
 
         if "project" not in config.keys():
-            config["project"] = RUNS_DIR / f"{config["model"][:-3]}" / f"train_{current_timestamp}"
+            config["project"] = RUNS_DIR / f"{config['model'][:-3]}" / f"train_{current_timestamp}"
 
         logger.info(f"Saving training run to: {config['project']}")
 
-        if "remove_ball_label" in config.keys():
+        if config.get("remove_ball_label"):
             config = do_remove_ball_label(config, current_timestamp)
+            config.pop("remove_ball_label")
+        elif "remove_ball_label" in config.keys():
             config.pop("remove_ball_label")
 
         train(config)

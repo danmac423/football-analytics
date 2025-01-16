@@ -16,7 +16,8 @@
         "batch": 22,
         "imgsz": 640,
         "mosaic": 0.0,
-        "plots": true
+        "plots": true,
+        "remove_ball_label": false
     },
     {
         "model": "yolo11n.pt",

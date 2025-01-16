@@ -24,15 +24,15 @@ def read_from_json(path: Path) -> list[dict[Any, Any]]:
 
 
 def remove_ball_label_from_data_yaml(file_path: str):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         data = yaml.safe_load(file)
 
-    data['nc'] = 3
+    data["nc"] = 3
 
-    if 'names' in data and 'ball' in data['names']:
-        data['names'].remove('ball')
+    if "names" in data and "ball" in data["names"]:
+        data["names"].remove("ball")
 
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         yaml.dump(data, file, default_flow_style=False)
 
     logger.info(f"Successfully modified YAML file at {file_path}!")
@@ -42,9 +42,9 @@ def remove_label_zero(dataset_directory: str):
     if os.path.isfile(dataset_directory):
         dataset_directory = os.path.dirname(dataset_directory)
 
-    dataset_to_clear = ["test", "train", "valid"]
+    datasets_to_clear = ["test", "train", "valid"]
 
-    for dataset_to_clear in dataset_to_clear:
+    for dataset_to_clear in datasets_to_clear:
         for file_name in os.listdir(f"{dataset_directory}/{dataset_to_clear}/labels"):
             file_path = f"{dataset_directory}/{dataset_to_clear}/labels/{file_name}"
 
