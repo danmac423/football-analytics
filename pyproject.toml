@@ -79,3 +79,4 @@ addopts = "--cov=football_analytics --cov-report=term-missing"
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
+exclude = ["grpc_files"]

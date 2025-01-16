@@ -1,3 +1,5 @@
+"""Module for generating a radar visualization on a frame."""
+
 import cv2
 import numpy as np
 import supervision as sv
@@ -21,7 +23,20 @@ def generate_radar(
     people_detections: sv.Detections,
     ball_detections: sv.Detections,
     keypoints_detections: sv.KeyPoints,
-):
+) -> np.ndarray:
+    """
+    Generates a radar visualization on the given frame. The radar visualization shows the football
+    pitch with the detected players, goalkeepers, referees, and the ball.
+
+    Args:
+        frame (np.ndarray): The frame.
+        people_detections (sv.Detections): The people detections.
+        ball_detections (sv.Detections): The ball detections.
+        keypoints_detections (sv.KeyPoints): The keypoints detections.
+
+    Returns:
+        np.ndarray: The frame with the radar visualization.
+    """
     height, width, _ = frame.shape
 
     CONFIG = FootballPitchConfiguration()
@@ -37,7 +52,7 @@ def generate_radar(
         goalkeepers_detections = sv.Detections(xyxy=np.empty((0, 4)))
         referees_detections = sv.Detections(xyxy=np.empty((0, 4)))
 
-    filter = keypoints_detections.confidence[0] > 0.5
+    filter = keypoints_detections.confidence[0] > 0.5  # type: ignore
     frame_reference_points = keypoints_detections.xy[0][filter]
     pitch_reference_points = np.array(CONFIG.vertices)[filter]
 
@@ -48,15 +63,15 @@ def generate_radar(
     frame_ball_xy = ball_detections.get_anchors_coordinates(sv.Position.BOTTOM_CENTER)
     pitch_ball_xy = view_transformer.transform_points(frame_ball_xy)
 
-    frame_players_xy = players_detections.get_anchors_coordinates(sv.Position.BOTTOM_CENTER)
+    frame_players_xy = players_detections.get_anchors_coordinates(sv.Position.BOTTOM_CENTER)  # type: ignore
     pitch_players_xy = view_transformer.transform_points(frame_players_xy)
 
-    frame_goalkeepers_xy = goalkeepers_detections.get_anchors_coordinates(
+    frame_goalkeepers_xy = goalkeepers_detections.get_anchors_coordinates(  # type: ignore
         sv.Position.BOTTOM_CENTER
     )
     pitch_goalkeepers_xy = view_transformer.transform_points(frame_goalkeepers_xy)
 
-    frame_referees_xy = referees_detections.get_anchors_coordinates(sv.Position.BOTTOM_CENTER)
+    frame_referees_xy = referees_detections.get_anchors_coordinates(sv.Position.BOTTOM_CENTER)  # type: ignore
     pitch_referees_xy = view_transformer.transform_points(frame_referees_xy)
 
     pitch = draw_football_pitch(config=CONFIG)

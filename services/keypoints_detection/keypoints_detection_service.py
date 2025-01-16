@@ -1,3 +1,5 @@
+"""Module that contains the gRPC server for the keypoints detection service."""
+
 import logging
 import os
 import signal
@@ -29,12 +31,11 @@ logger = logging.getLogger(__name__)
 class YOLOKeypointsDetectionServiceServicer(
     keypoints_detection_pb2_grpc.YOLOKeypointsDetectionServiceServicer
 ):
-    """YOLOKeypointsDetectionServiceServicer is a class that implements the
-    YOLOKeypointsDetectionServiceServicer interface in the generated
-    keypoints_detection_pb2_grpc module.
+    """
+    YOLOKeypointsDetectionServiceServicer class to implement the gRPC service.
 
     Attributes:
-            model (YOLO): An instance of the YOLO class from the ultralytics module.
+        detector (YOLOKeypointsDetector): YOLO Keypoints Detector
     """
 
     def __init__(self):
@@ -45,17 +46,16 @@ class YOLOKeypointsDetectionServiceServicer(
         request_iterator: Iterator[keypoints_detection_pb2.Frame],
         context: grpc.ServicerContext,
     ) -> Generator[keypoints_detection_pb2.KeypointsDetectionResponse, Any, Any]:
-        """DetectKeypoints method for the gRPC service which takes a stream of frames
-        and returns the response with the bounding boxes and keypoints.
+        """
+        Method that receives a stream of frames and returns a stream of KeypointsDetectionResponse.
 
         Args:
-                request_iterator (Iterator[keypoints_detection_pb2.Frame]): request iterator
-                context (grpc.ServicerContext): context object for the request
+            request_iterator (Iterator[keypoints_detection_pb2.Frame]): request iterator
+            context (grpc.ServicerContext): context object for the request
 
         Yields:
-                Generator[keypoints_detection_pb2.KeypointsDetectionResponse, Any, Any]:
-                    returns the response
-                with frame_id, boxes (normalized), and keypoints
+            Generator[keypoints_detection_pb2.KeypointsDetectionResponse, Any, Any]: returns the
+                response with frame_id and keypoints
         """
         for frame in request_iterator:
             try:
@@ -68,7 +68,7 @@ class YOLOKeypointsDetectionServiceServicer(
                 context.abort(grpc.StatusCode.UNKNOWN, str(e))
 
 
-def shutdown_server(server, servicer):
+def shutdown_server(server: grpc.Server, servicer: YOLOKeypointsDetectionServiceServicer):
     """
     Gracefully shuts down the server and logs shutdown events.
     """

@@ -26,7 +26,7 @@ def run_client(video_path, output_path):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Kodowanie MP4
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     responses = stub.InferencePlayers(stream_frames(video_path))

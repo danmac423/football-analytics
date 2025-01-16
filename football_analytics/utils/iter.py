@@ -1,3 +1,5 @@
+"""Utility functions for iterating over data structures."""
+
 import queue
 
 
@@ -11,7 +13,7 @@ def peek_and_restore(peeked_queue: queue.Queue, n: int) -> list:
     Returns:
         list: A list containing the first n items from the queue.
     """
-    temp_queue = queue.Queue()
+    temp_queue: queue.Queue = queue.Queue()
     items = []
 
     for _ in range(n):

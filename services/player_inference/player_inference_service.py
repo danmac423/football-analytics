@@ -1,3 +1,5 @@
+"""Module that contains the gRPC server for the player inference service."""
+
 import logging
 import os
 import signal
@@ -25,7 +27,12 @@ logger = logging.getLogger(__name__)
 class YOLOPlayerInferenceServiceServicer(
     player_inference_pb2_grpc.YOLOPlayerInferenceServiceServicer
 ):
-    """YOLOPlayerInferenceServiceServicer class to implement the gRPC service."""
+    """
+    YOLOPlayerInferenceServiceServicer class to implement the gRPC service.
+
+    Attributes:
+        inferer (YOLOPlayerInferer): YOLO Player Inferer
+    """
 
     def __init__(self):
         self.inferer = YOLOPlayerInferer()
@@ -33,8 +40,8 @@ class YOLOPlayerInferenceServiceServicer(
     def InferencePlayers(
         self, request_iterator: Iterator[player_inference_pb2.Frame], context: grpc.ServicerContext
     ) -> Generator[player_inference_pb2.PlayerInferenceResponse, Any, Any]:
-        """InferencePlayers method for the gRPC service which takes a stream of frames
-        and returns the response with the bounding boxes.
+        """
+        Method that receives a stream of frames and returns a stream of PlayerInferenceResponse.
 
         Args:
             request_iterator (Iterator[player_inference_pb2.Frame]): request iterator
@@ -42,7 +49,7 @@ class YOLOPlayerInferenceServiceServicer(
 
         Yields:
             Generator[player_inference_pb2.PlayerInferenceResponse, Any, Any]: returns the response
-            with frame_id and boxes
+                with frame_id and boxes
         """
         try:
             for frame in request_iterator:
@@ -63,7 +70,7 @@ class YOLOPlayerInferenceServiceServicer(
             self.inferer.reset_tracker()
 
 
-def shutdown_server(server, servicer):
+def shutdown_server(server: grpc.Server, servicer: YOLOPlayerInferenceServiceServicer):
     """
     Gracefully shuts down the server and logs shutdown events.
     """

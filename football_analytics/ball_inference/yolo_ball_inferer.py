@@ -1,3 +1,4 @@
+"""Module for the YOLOBallInferer class."""
 
 import logging
 
@@ -19,6 +20,14 @@ logger = logging.getLogger(__name__)
 
 
 class YOLOBallInferer:
+    """
+    Class to perform ball inference using YOLO.
+
+    Attributes:
+        model (YOLO): The YOLO model.
+        tracker (BallTracker): The tracker to track the ball.
+    """
+
     def __init__(self):
         logger.info("Initializing YOLO model...")
         self.model = YOLO(BALL_INFERENCE_MODEL_PATH).to(DEVICE)
@@ -26,16 +35,26 @@ class YOLOBallInferer:
         self.tracker = self._initialize_tracker()
 
     def _initialize_tracker(self) -> BallTracker:
+        """Initializes the tracker."""
         return BallTracker()
 
-    def reset_tracker(self) -> None:
+    def reset_tracker(self):
+        """Resets the tracker."""
         self.tracker.reset()
 
     def infer_ball(
         self,
         frame_image: np.ndarray,
     ) -> ball_inference_pb2.BallInferenceResponse:
+        """
+        Performs ball inference on the given frame image.
 
+        Args:
+            frame_image (np.ndarray): The frame image.
+
+        Returns:
+            ball_inference_pb2.BallInferenceResponse: The ball inference response
+        """
         height, width, _ = frame_image.shape
         slicer = self._create_inference_slicer(width, height)
 
@@ -45,6 +64,17 @@ class YOLOBallInferer:
         return ball_inference_pb2.BallInferenceResponse(boxes=boxes)
 
     def _create_inference_slicer(self, width: int, height: int) -> sv.InferenceSlicer:
+        """
+        Creates an inference slicer for the given width and height.
+
+        Args:
+            width (int): The width of the frame.
+            height (int): The height of the frame.
+
+        Returns:
+            sv.InferenceSlicer: The inference slicer.
+        """
+
         def callback(patch: np.ndarray) -> sv.Detections:
             result = self.model(patch, conf=0.3)[0]
             return sv.Detections.from_ultralytics(result)
@@ -62,6 +92,17 @@ class YOLOBallInferer:
     def _perform_inference(
         self, frame_image: np.ndarray, slicer: sv.InferenceSlicer, tracker: BallTracker
     ) -> sv.Detections:
+        """
+        Performs inference on the given frame image.
+
+        Args:
+            frame_image (np.ndarray): The frame image.
+            slicer (sv.InferenceSlicer): The inference slicer.
+            tracker (BallTracker): The ball tracker.
+
+        Returns:
+            sv.Detections: The detections.
+        """
         initial_results: Results = self.model(frame_image)[0]
         detections = sv.Detections.from_ultralytics(initial_results)
 
@@ -73,8 +114,19 @@ class YOLOBallInferer:
     def _format_detections(
         self, detections: sv.Detections, width: int, height: int
     ) -> list[ball_inference_pb2.BoundingBox]:
+        """
+        Fromats the detections to the ball inference response format.
+
+        Args:
+            detections (sv.Detections): The detections.
+            width (int): The width of the frame.
+            height (int): The height of the frame.
+
+        Returns:
+            list[ball_inference_pb2.BoundingBox]: The formatted bounding boxes.
+        """
         boxes = []
-        for box, conf in zip(detections.xyxy, detections.confidence):
+        for box, conf in zip(detections.xyxy, detections.confidence):  # type: ignore
             x1, y1, x2, y2 = box[:4]
             boxes.append(
                 ball_inference_pb2.BoundingBox(

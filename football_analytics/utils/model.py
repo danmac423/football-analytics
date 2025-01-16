@@ -1,3 +1,5 @@
+"""Module to convert the response from the gRPC server to the supervision format."""
+
 import numpy as np
 import supervision as sv
 from multimethod import multimethod
@@ -11,6 +13,17 @@ from services.player_inference.grpc_files import player_inference_pb2
 def to_supervision(
     ball_response: ball_inference_pb2.BallInferenceResponse, frame_ndarray: np.ndarray
 ) -> sv.Detections:
+    """
+    Convert the response from the ball inference service to the supervision format.
+
+    Args:
+        ball_response (ball_inference_pb2.BallInferenceResponse): Response from the ball inference
+            service
+        frame_ndarray (np.ndarray): Frame in ndarray format
+
+        Returns:
+            sv.Detections: Detections in the supervision format
+    """
     ball_boxes = ball_response.boxes
     height, width, _ = frame_ndarray.shape
 
@@ -58,7 +71,7 @@ def to_supervision(
         raise
 
 
-@multimethod
+@multimethod  # type: ignore
 def to_supervision(  # noqa
     keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
     frame_ndarray: np.ndarray,
@@ -97,7 +110,7 @@ def to_supervision(  # noqa
         raise
 
 
-@multimethod
+@multimethod  # type: ignore
 def to_supervision(  # noqa
     player_response: player_inference_pb2.PlayerInferenceResponse, frame_ndarray: np.ndarray
 ) -> sv.Detections:

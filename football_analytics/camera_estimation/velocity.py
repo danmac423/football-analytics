@@ -6,6 +6,13 @@ from services.player_inference.grpc_files import player_inference_pb2
 
 
 class VelocityEstimator:
+    """
+    Class responsible for estimating the velocity of players.
+
+    Attributes:
+        previous_positions (dict): The previous positions of the players.
+    """
+
     def __init__(self):
         self.previous_positions = {}
 
@@ -15,7 +22,20 @@ class VelocityEstimator:
         current_position: tuple[float, float],
         tracker_id: int,
         delta_time: float,
-    ):
+    ) -> float:
+        """
+        Estimates the velocity of a player. The velocity is calculated as the distance
+        between the current position and the previous position divided by the time difference.
+
+        Args:
+            view_transformer (ViewTransformer): The view transformer.
+            current_position (tuple[float, float]): The current position of the player.
+            tracker_id (int): The tracker ID of the player.
+            delta_time (float): The time difference between the current and previous frame.
+
+        Returns:
+            float: The estimated velocity of the player.
+        """
         real_position = view_transformer.transform_points(np.array([current_position]))[0]
 
         if tracker_id in self.previous_positions:
@@ -41,7 +61,21 @@ class VelocityEstimator:
         player_response: player_inference_pb2.PlayerInferenceResponse,
         frame_ndarray: np.ndarray,
         delta_time: float,
-    ):
+    ) -> dict[int, float]:
+        """
+        Estimates the velocities of players. The velocities are calculated as the distance
+        between the current position and the previous position divided by the time difference.
+
+        Args:
+            view_transformer (ViewTransformer): The view transformer.
+            player_response (player_inference_pb2.PlayerInferenceResponse): The player
+                inference response.
+            frame_ndarray (np.ndarray): The frame in ndarray format.
+            delta_time (float): The time difference between the current and previous frame.
+
+        Returns:
+            dict[int, float]: The estimated velocities of the players.
+        """
         try:
             if player_response is not None:
                 velocities = {}
