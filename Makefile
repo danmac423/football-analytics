@@ -7,6 +7,49 @@ PYTHON_VERSION = 3.12
 PYTHON_INTERPRETER = python
 
 #################################################################################
+# SERVICES                                                                      #
+#################################################################################
+
+
+.PHONY: dev-services
+dev-services:
+	@echo "Starting ball_inference_service, player_inference_service, and keypoints_detection_service..."
+	@tmux new-session -d -s ball-inference-service 'make run-ball-inference-service'
+	@tmux new-session -d -s player-inference-service 'make run-player-inference-service'
+	@tmux new-session -d -s keypoints-detection-service 'make run-keypoints-detection-service'
+	@echo "Services started."
+
+.PHONY: full-stack
+full-stack: dev-services
+	@echo "Starting inference_manager_service..."
+	@tmux new-session -d -s inference-manager-service 'make run-inference-manager-service'
+	@echo "Service started. Full stack is running."
+
+.PHONY: run-ball-inference-service
+run-ball-inference-service:
+	$(PYTHON_INTERPRETER) services/ball_inference/ball_inference_service.py
+
+.PHONY: run-player-inference-service
+run-player-inference-service:
+	$(PYTHON_INTERPRETER) services/player_inference/player_inference_service.py
+
+.PHONY: run-keypoints-detection-service
+run-keypoints-detection-service:
+	$(PYTHON_INTERPRETER) services/keypoints_detection/keypoints_detection_service.py
+
+.PHONY: run-inference-manager-service
+run-inference-manager-service:
+	$(PYTHON_INTERPRETER) services/inference_manager/inference_manager_service.py
+
+.PHONY: stop-services
+stop-services:
+	@echo "Stopping all services..."
+	@ps aux | grep "services/" | grep -v grep | awk '{print $$2}' | xargs kill -9 || true
+	@echo "All services stopped."
+
+
+
+#################################################################################
 # COMMANDS                                                                      #
 #################################################################################
 
@@ -48,14 +91,14 @@ coverage:
 	$(PYTHON_INTERPRETER) -m pytest --cov=football_analytics --cov-report=term-missing tests
 
 
-## Download models from kaggle
-.PHONY: download_models
-download_models:
-	$(PYTHON_INTERPRETER) scripts/download_models.py
-
 #################################################################################
 # PROJECT RULES                                                                 #
 #################################################################################
+
+## Download models from kaggle
+.PHONY: download-models
+download_models:
+	$(PYTHON_INTERPRETER) scripts/download_models.py
 
 
 ## Make Dataset
@@ -84,8 +127,8 @@ validate:
 
 
 ## Make optuna hyperparameter search experiment
-# Usage example: make optuna_hyperparameter_search path_to_hyperparameters_search_config=configurations/hyperparameter_search.json
-.PHONY: optuna_hyperparameter_search $(path_to_hyperparameters_search_config)
+# Usage example: make optuna-hyperparameter-search path_to_hyperparameters_search_config=configurations/hyperparameter_search.json
+.PHONY: optuna-hyperparameter-search $(path_to_hyperparameters_search_config)
 optuna_hyperparameter_search:
 	$(PYTHON_INTERPRETER) ai/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
 
