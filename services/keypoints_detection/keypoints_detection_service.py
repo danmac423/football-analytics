@@ -61,6 +61,11 @@ class YOLOKeypointsDetectionServiceServicer(
             try:
                 keypoints_detection_response = self.detector.detect_keypoints(frame)
 
+                keypoints_detection_response.frame_id = frame.frame_id
+                logger.info(
+                    f"Frame ID {frame.frame_id} processed with {len(keypoints_detection_response.boxes)} detections."  # noqa
+                )
+
                 yield keypoints_detection_response
 
             except Exception as e:
