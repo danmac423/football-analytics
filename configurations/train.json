@@ -9,7 +9,7 @@
         "plots": true
     },
     {
-        "model": "yolo11n-pose.pt",
+        "model": "yolo8n-pose.pt",
         "task": "pose",
         "data": "data/raw/football-pitch-keypoints-detection/data.yaml",
         "epochs": 100,

@@ -2,7 +2,7 @@ models/*
 .vscode/*
 # logs/*
 # Data
-/data/
+data/*
 
 # Mac OS-specific storage files
 .DS_Store
@@ -183,6 +183,7 @@ models/yolo11n-pose.pt
 models/yolo11n.pt
 models/yolo11s.pt
 models/yolo11x.pt
+
 
 # Temporary files for testing
 configurations/a.json

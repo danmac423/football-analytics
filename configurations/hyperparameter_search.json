@@ -16,7 +16,7 @@
         "numer_of_trials": 2
     },
     {
-        "model": "yolo11n-pose.pt",
+        "model": "yolov8n-pose.pt",
         "task": "detect",
         "data": "data/raw/football-pitch-keypoints-detection/data.yaml",
         "epochs_min": 1,
