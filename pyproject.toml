@@ -62,6 +62,7 @@ dependencies = [
     "threadpoolctl==3.5.0",
     "tqdm==4.67.1",
     "umap-learn==0.5.7",
+    "click"
     "types-PyYAML"
   ]
 
