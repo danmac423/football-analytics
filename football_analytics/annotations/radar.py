@@ -9,7 +9,7 @@ from football_analytics.football_pitch.draw_football_pitch import (
 from football_analytics.football_pitch.football_pitch_configuration import (
     FootballPitchConfiguration,
 )
-from football_analytics.football_pitch.view_transformer import ViewTransformer
+from football_analytics.camera_estimation.view_transformer import ViewTransformer
 
 GOALKEEPER_ID = 0
 PLAYER_ID = 1
