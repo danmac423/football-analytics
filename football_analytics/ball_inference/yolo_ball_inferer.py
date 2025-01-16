@@ -1,7 +1,5 @@
 """Module for the YOLOBallInferer class."""
 
-import logging
-
 import numpy as np
 import supervision as sv
 from ultralytics import YOLO
@@ -10,13 +8,6 @@ from ultralytics.engine.results import Results
 from config import BALL_INFERENCE_MODEL_PATH, DEVICE
 from football_analytics.ball_inference.ball_tracker import BallTracker
 from services.ball_inference.grpc_files import ball_inference_pb2
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(), logging.FileHandler("logs/ball_inference_service.log")],
-)
-logger = logging.getLogger(__name__)
 
 
 class YOLOBallInferer:
@@ -29,9 +20,7 @@ class YOLOBallInferer:
     """
 
     def __init__(self):
-        logger.info("Initializing YOLO model...")
         self.model = YOLO(BALL_INFERENCE_MODEL_PATH).to(DEVICE)
-        logger.info(f"YOLO model loaded from {BALL_INFERENCE_MODEL_PATH} on device {DEVICE}.")
         self.tracker = self._initialize_tracker()
 
     def _initialize_tracker(self) -> BallTracker:

@@ -1,6 +1,5 @@
 """Module responsible for tracking players using YOLO."""
 
-import logging
 import os
 from typing import List
 
@@ -13,13 +12,6 @@ from config import DEVICE, PLAYER_INFERENCE_MODEL_PATH
 from services.player_inference.grpc_files import player_inference_pb2
 
 os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(), logging.FileHandler("logs/player_inference_service.log")],
-)
-logger = logging.getLogger(__name__)
 
 
 class YOLOPlayerInferer:
@@ -41,9 +33,7 @@ class YOLOPlayerInferer:
         Returns:
             YOLO: The loaded YOLO model.
         """
-        logger.info("Initializing YOLO model...")
         model = YOLO(PLAYER_INFERENCE_MODEL_PATH).to(DEVICE)
-        logger.info(f"YOLO model loaded from {PLAYER_INFERENCE_MODEL_PATH} on device {DEVICE}.")
         return model
 
     def _initialize_tracker(self) -> sv.ByteTrack:

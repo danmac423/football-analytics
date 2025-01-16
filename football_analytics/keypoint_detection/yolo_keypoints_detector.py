@@ -1,6 +1,5 @@
 """Module for the YOLOKeypointsDetector class."""
 
-import logging
 from typing import List, Tuple
 
 import cv2
@@ -10,16 +9,6 @@ from ultralytics.engine.results import Results
 
 from config import DEVICE, KEYPOINTS_DETECTION_MODEL_PATH
 from services.keypoints_detection.grpc_files import keypoints_detection_pb2
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("logs/keypoints_detection_service.log"),
-    ],
-)
-logger = logging.getLogger(__name__)
 
 
 class YOLOKeypointsDetector:
@@ -31,9 +20,7 @@ class YOLOKeypointsDetector:
     """
 
     def __init__(self):
-        logger.info("Initializing YOLO model...")
         self.model = YOLO(KEYPOINTS_DETECTION_MODEL_PATH).to(DEVICE)
-        logger.info(f"YOLO model loaded from {KEYPOINTS_DETECTION_MODEL_PATH} on device {DEVICE}.")
 
     def detect_keypoints(
         self, frame: keypoints_detection_pb2.Frame
@@ -56,11 +43,6 @@ class YOLOKeypointsDetector:
 
         boxes = self._extract_boxes(results)
         keypoints = self._extract_keypoints(results, frame_image.shape, frame_image_resized.shape)  # type: ignore
-
-        logger.info(
-            f"Frame ID {frame.frame_id} processed with {len(keypoints)} keypoints and "
-            f"{len(boxes)} detections."
-        )
 
         return keypoints_detection_pb2.KeypointsDetectionResponse(
             frame_id=frame.frame_id, boxes=boxes, keypoints=keypoints
