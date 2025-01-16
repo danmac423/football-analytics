@@ -1,12 +1,10 @@
-from typing import Callable
 
 import cv2
 import numpy as np
 import supervision as sv
 
 from config import BALL_COLOR, KEYPOINTS_COLOR, PLAYER_COLORS
-from football_analytics.camera_estimation.view_transformer import ViewTransformer
-from football_analytics.camera_estimation.velocity import VelocityEstimator
+from football_analytics.annotations.radar import generate_radar
 from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2
 from services.keypoints_detection.grpc_files import keypoints_detection_pb2
@@ -74,3 +72,29 @@ class FrameAnnotator:
             raise Exception(f"Error annotating keypoints: {e}")
 
         return annotated_frame
+
+    @staticmethod
+    def generate_radar(
+        frame: np.ndarray,
+        player_response: player_inference_pb2.PlayerInferenceResponse,
+        ball_response: ball_inference_pb2.BallInferenceResponse,
+        keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
+    ):
+        if not keypoints_response or not keypoints_response.keypoints:
+            return frame
+
+        if not player_response:
+            player_detections = sv.Detections(
+                xyxy=np.empty((0, 4)),
+            )
+        else:
+            player_detections = to_supervision(player_response, frame)
+
+        if not ball_response:
+            ball_detections = sv.Detections(xyxy=np.empty((0, 4)))
+        else:
+            ball_detections = to_supervision(ball_response, frame)
+
+        return generate_radar(
+            frame, player_detections, ball_detections, to_supervision(keypoints_response, frame)
+        )

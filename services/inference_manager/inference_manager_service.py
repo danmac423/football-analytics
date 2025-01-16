@@ -10,7 +10,6 @@ from typing import Any, Callable, Generator, Iterator
 import cv2
 import grpc
 import numpy as np
-import supervision as sv
 
 from config import (
     BALL_INFERENCE_SERVICE_ADDRESS,
@@ -19,20 +18,14 @@ from config import (
     PLAYER_INFERENCE_SERVICE_ADDRESS,
 )
 from football_analytics.annotations.frame_annotator import FrameAnnotator
-from football_analytics.annotations.radar import generate_radar
 from football_analytics.camera_estimation.velocity import VelocityEstimator
 from football_analytics.camera_estimation.view_transformer import ViewTransformer
-from football_analytics.football_pitch.football_pitch_configuration import (
-    FootballPitchConfiguration,
-)
-from football_analytics.utils.model import to_supervision
 from services.ball_inference.grpc_files import ball_inference_pb2, ball_inference_pb2_grpc
 from services.inference_manager.grpc_files import inference_manager_pb2, inference_manager_pb2_grpc
 from services.keypoints_detection.grpc_files import (
-    keypoints_detection_pb2,
     keypoints_detection_pb2_grpc,
 )
-from services.player_inference.grpc_files import player_inference_pb2, player_inference_pb2_grpc
+from services.player_inference.grpc_files import player_inference_pb2_grpc
 
 os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 
@@ -238,12 +231,11 @@ class InferenceManagerServiceServicer(inference_manager_pb2_grpc.InferenceManage
                 annotated_frame = self.frame_annotator.annotate_frame(
                     annotated_frame, player_response, ball_response, keypoints_response, velocities
                 )
+                annotated_frame = self.frame_annotator.generate_radar(
+                    annotated_frame, player_response, ball_response, keypoints_response
+                )
             except Exception as e:
                 logger.error(f"Failed to annotate frame ID {frame.frame_id}: {e}")
-
-            # annotated_frame = self._generate_radar(
-            #     annotated_frame, player_response, ball_response, keypoints_response
-            # )
 
             _, frame_bytes = self._safe_execute(lambda: cv2.imencode(".jpg", annotated_frame))
             if frame_bytes is None:
@@ -312,140 +304,3 @@ def serve():
 
 if __name__ == "__main__":
     serve()
-
-    # def _initialize_view_transformer(
-    #     self,
-    #     frame: np.ndarray,
-    #     keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
-    # ) -> None:
-    #     """
-    #     Initializes the ViewTransformer with the reference points from the first frame.
-
-    #     Args:
-    #         frame (np.ndarray): The first frame.
-    #         keypoints_response (keypoints_detection_pb2.KeypointsDetectionResponse): The keypoints
-    #             response from YOLO service.
-
-    #     Raises:
-    #         ValueError: If keypoints are not available.
-    #     """
-    #     if not keypoints_response or not keypoints_response.keypoints:
-    #         raise ValueError("Keypoints not available for initializing ViewTransformer.")
-
-    #     keypoints = to_supervision(keypoints_response, frame)
-    #     filter = keypoints.confidence[0] > 0.5
-    #     frame_reference_points = keypoints.xy[0][filter]
-
-    #     config = FootballPitchConfiguration()
-    #     pitch_reference_points = np.array(config.vertices, dtype=np.float32)[filter]
-
-    #     self.view_transformer = ViewTransformer(
-    #         source=frame_reference_points,
-    #         target=pitch_reference_points,
-    #     )
-
-    # def _calculate_velocity(
-    #     self, player_id: int, current_position: tuple[float, float], delta_time: float
-    # ) -> float:
-    #     real_position = self.view_transformer.transform_points(np.array([current_position]))[0]
-
-    #     if player_id in self.previous_positions:
-    #         prev_position =    self.previous_positions[player_id]
-
-    #         prev_real_position = self.view_transformer.transform_points(np.array([prev_position]))[
-    #             0
-    #         ]
-
-    #         distance = np.sqrt(
-    #             (real_position[0] - prev_real_position[0]) ** 2
-    #             + (real_position[1] - prev_real_position[1]) ** 2
-    #         )
-
-    #         velocity = (distance / 100.0) / delta_time if delta_time > 0 else 0
-    #     else:
-    #         velocity = 0
-
-    #     self.previous_positions[player_id] = current_position
-    #     return velocity
-
-    # def _annotate_frame(
-    #     self,
-    #     frame_ndarray: np.ndarray,
-    #     player_response: player_inference_pb2.PlayerInferenceResponse,
-    #     ball_response: ball_inference_pb2.BallInferenceResponse,
-    #     keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
-    #     delta_time: float,
-    # ) -> np.ndarray:
-    #     """
-    #     Annotates a frame with player, ball, and keypoints data if available.
-    #     """
-    #     annotated_frame = frame_ndarray.copy()
-
-    #     try:
-    #         if player_response is not None:
-    #             detections = to_supervision(player_response, frame_ndarray)
-
-    #             for i, detection in enumerate(detections.xyxy):
-    #                 tracker_id = int(detections.tracker_id[i])
-    #                 position = (
-    #                     (detection[0] + detection[2]) / 2,  # x1 + x2 / 2
-    #                     (detection[1] + detection[3]) / 2,  # y1 + y2 / 2
-    #                 )
-    #                 velocity = self._calculate_velocity(tracker_id, position, delta_time)
-    #                 annotated_frame = ELLIPSE_ANNOTATOR.annotate(annotated_frame, detections)
-
-    #                 velocity_text = f"{velocity:.2f} m/s"
-    #                 position = (int(detection[0]), int(detection[1]))
-    #                 cv2.putText(
-    #                     annotated_frame,
-    #                     velocity_text,
-    #                     position,
-    #                     cv2.FONT_HERSHEY_SIMPLEX,
-    #                     0.5,
-    #                     (255, 255, 255),
-    #                     1,
-    #                 )
-    #     except Exception as e:
-    #         logger.error(f"Error annotating players: {e}")
-
-    #     try:
-    #         if ball_response is not None:
-    #             detections = to_supervision(ball_response, frame_ndarray)
-    #             annotated_frame = TRIANGLE_ANNOTATOR.annotate(annotated_frame, detections)
-    #     except Exception as e:
-    #         logger.error(f"Error annotating ball: {e}")
-
-    #     try:
-    #         if keypoints_response is not None:
-    #             keypoints = to_supervision(keypoints_response, frame_ndarray)
-    #             annotated_frame = VERTEX_ANNOTATOR.annotate(annotated_frame, keypoints)
-    #     except Exception as e:
-    #         logger.error(f"Error annotating keypoints: {e}")
-
-    #     return annotated_frame
-
-    # def _generate_radar(
-    #     self,
-    #     frame: np.ndarray,
-    #     player_response: player_inference_pb2.PlayerInferenceResponse,
-    #     ball_response: ball_inference_pb2.BallInferenceResponse,
-    #     keypoints_response: keypoints_detection_pb2.KeypointsDetectionResponse,
-    # ) -> np.ndarray:
-    #     if not keypoints_response or not keypoints_response.keypoints:
-    #         return frame
-
-    #     if not player_response:
-    #         player_detections = sv.Detections(
-    #             xyxy=np.empty((0, 4)),
-    #         )
-    #     else:
-    #         player_detections = to_supervision(player_response, frame)
-
-    #     if not ball_response:
-    #         ball_detections = sv.Detections(xyxy=np.empty((0, 4)))
-    #     else:
-    #         ball_detections = to_supervision(ball_response, frame)
-
-    #     return generate_radar(
-    #         frame, player_detections, ball_detections, to_supervision(keypoints_response, frame)
-    #     )
