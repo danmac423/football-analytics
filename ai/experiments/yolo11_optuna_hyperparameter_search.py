@@ -49,16 +49,16 @@ def save_trials_to_json(
 
 def create_config(
         *,
-        model: str = None,
-        task: str = None,
-        data: str = None,
-        epochs: int = None,
-        batch: float | int = None,
-        imgsz: int = None,
-        plots: bool = None,
-        project: str = None,
-        mosaic: float = None,
-        remove_ball_label: bool = None,
+        model: str | None = None,
+        task: str | None = None,
+        data: str | None = None,
+        epochs: int | None = None,
+        batch: float | int | None = None,
+        imgsz: int | None = None,
+        plots: bool | None = None,
+        project: str | None = None,
+        mosaic: float | None = None,
+        remove_ball_label: bool | None = None,
 ) -> dict[str, Any]:
 
     config = {}
@@ -109,7 +109,7 @@ def objective(trial: Trial, search: dict[str, Any]) -> float:
     )
 
     if "remove_ball_label" in search.keys():
-        config = do_remove_ball_label(config, search.get("current_timestamp"))
+        config = do_remove_ball_label(config, str(search.get("current_timestamp")))
 
     train(config)
 
