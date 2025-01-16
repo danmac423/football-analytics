@@ -1,7 +1,5 @@
 """Module responsible for assigning players to teams."""
 
-import logging
-
 import cv2
 import numpy as np
 import supervision as sv
@@ -14,13 +12,6 @@ from transformers import AutoProcessor, SiglipVisionModel
 from config import DEVICE, PLAYER_ID
 from football_analytics.utils.model import to_supervision
 from services.player_inference.grpc_files import player_inference_pb2
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(), logging.FileHandler("logs/player_inference_service.log")],
-)
-logger = logging.getLogger(__name__)
 
 
 class TeamAssignmentProcessor:
@@ -41,12 +32,10 @@ class TeamAssignmentProcessor:
     def __init__(
         self, embedding_model_path: str = "google/siglip-base-patch16-224", n_clusters: int = 2
     ):
-        logger.info("Initializing TeamAssignmentProcessor...")
         self.embedding_model = SiglipVisionModel.from_pretrained(embedding_model_path).to(DEVICE)
         self.embedding_processor = AutoProcessor.from_pretrained(embedding_model_path)
         self.reducer = umap.UMAP(n_components=3)
         self.clustering_model = KMeans(n_clusters=n_clusters)
-        logger.info("TeamAssignmentProcessor initialized.")
 
     def extract_features(self, crops: list, batch_size: int = 32) -> np.ndarray:
         """Extracts features from image crops using the embedding model.
