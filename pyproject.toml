@@ -29,6 +29,7 @@ dependencies = [
     "loguru",
     "mkdocs",
     "pip",
+    "kaggle",
     "types-requests",
     "python-dotenv",
     "typer",

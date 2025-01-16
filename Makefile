@@ -72,6 +72,11 @@ run_analytics:
 	$(PYTHON_INTERPRETER) scripts/run_analytics.py $(source_video_path) $(output_video_path)
 
 
+## Download models from kaggle
+.PHONY: download_models
+download_models:
+	$(PYTHON_INTERPRETER) scripts/download_models.py
+
 #################################################################################
 # PROJECT RULES                                                                 #
 #################################################################################
@@ -79,7 +84,7 @@ run_analytics:
 
 ## Make Dataset
 .PHONY: data
-data: 
+data:
 	$(PYTHON_INTERPRETER) ai/dataset.py
 
 
