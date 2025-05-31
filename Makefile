@@ -74,10 +74,9 @@ stop-services:
 #################################################################################
 
 ## Install Python Dependencies
-.PHONY: uv
-uv:
-	uv venv
-	. .venv/bin/activate && uv pip install -e .
+.PHONY: env
+env:
+	uv sync
 
 ## Delete all compiled Python files
 .PHONY: clean
@@ -117,7 +116,7 @@ coverage:
 
 ## Download models from kaggle
 .PHONY: download-models
-download_models:
+download-models:
 	$(PYTHON_INTERPRETER) scripts/download_models.py
 
 
@@ -149,7 +148,7 @@ validate:
 ## Make optuna hyperparameter search experiment
 # Usage example: make optuna-hyperparameter-search path_to_hyperparameters_search_config=configurations/hyperparameter_search.json
 .PHONY: optuna-hyperparameter-search $(path_to_hyperparameters_search_config)
-optuna_hyperparameter_search:
+optuna-hyperparameter-search:
 	$(PYTHON_INTERPRETER) ai/experiments/yolo11_optuna_hyperparameter_search.py $(path_to_hyperparameters_search_config)
 
 
