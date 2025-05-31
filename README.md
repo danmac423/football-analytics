@@ -37,7 +37,7 @@ This project provides a comprehensive analysis of football matches from video re
 ### Installation
 1. Clone the repository:
     ```bash
-    git clone https://gitlab-stud.elka.pw.edu.pl/dmachnia/football-analytics.git
+    git clone https://github.com/danmac423/football-analytics.git
     cd football-analytics
    ```
 2. Create a virtual environment:
